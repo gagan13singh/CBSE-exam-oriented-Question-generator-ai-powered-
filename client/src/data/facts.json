@@ -1,0 +1,1202 @@
+[
+    {
+        "class": "9",
+        "subject": "Science",
+        "type": "Fact",
+        "fact": "The mass of an electron is about 1/2000 times that of a proton."
+    },
+    {
+        "class": "9",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The \"Estate General\" was a political body in France to which the three estates sent their representatives."
+    },
+    {
+        "class": "9",
+        "subject": "Math",
+        "type": "Def",
+        "fact": "The collection of all the points in a plane, which are at a fixed distance from a fixed point, is called a circle."
+    },
+    {
+        "class": "9",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "The cell wall is mainly composed of cellulose, which provides structural strength to plants."
+    },
+    {
+        "class": "9",
+        "subject": "Physics",
+        "type": "Formula",
+        "fact": "Average speed is calculated by dividing the total distance traveled by the total time taken."
+    },
+    {
+        "class": "9",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "India is the 7th largest country in the world by total land area."
+    },
+    {
+        "class": "9",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "Latent heat of fusion is the heat required to change 1kg of solid into liquid at atmospheric pressure."
+    },
+    {
+        "class": "9",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "In a democracy, the final decision-making power must rest with those elected by the people."
+    },
+    {
+        "class": "9",
+        "subject": "Economics",
+        "type": "Fact",
+        "fact": "Human capital is superior to other resources like land and physical capital."
+    },
+    {
+        "class": "9",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Simple tissues consist of only one type of cells; complex tissues (like Xylem) consist of more than one."
+    },
+    {
+        "class": "9",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "The SI unit of force is the Newton ($N$), and 1 Newton = 1 $kg \\cdot m/s^2$."
+    },
+    {
+        "class": "9",
+        "subject": "Math",
+        "type": "Rule",
+        "fact": "Two triangles are congruent if their corresponding sides and angles are equal."
+    },
+    {
+        "class": "9",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "Hitler’s ideology was borrowed from thinkers like Charles Darwin and Herbert Spencer regarding \"survival of the fittest.\""
+    },
+    {
+        "class": "9",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "The Northern Plains are formed of alluvial deposits brought by the Indus, Ganga, and Brahmaputra."
+    },
+    {
+        "class": "9",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "A solution is a homogeneous mixture of two or more substances."
+    },
+    {
+        "class": "9",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Parenchyma, Collenchyma, and Sclerenchyma are the three types of simple permanent tissues."
+    },
+    {
+        "class": "9",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "Sound is a longitudinal wave that requires a medium to travel."
+    },
+    {
+        "class": "9",
+        "subject": "Math",
+        "type": "Theorem",
+        "fact": "The sum of any two sides of a triangle is always greater than the third side."
+    },
+    {
+        "class": "9",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "In 1904-05, the Russo-Japanese War ended in a surprising victory for Japan."
+    },
+    {
+        "class": "9",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The Indian Constitution was adopted on 26th November 1949 but came into effect on 26th January 1950."
+    },
+    {
+        "class": "9",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "The term \"Cell\" was derived from the Latin word cellula, meaning a little room."
+    },
+    {
+        "class": "9",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "A Colloid is a heterogeneous mixture where particle size is between 1nm and 1000nm."
+    },
+    {
+        "class": "9",
+        "subject": "Physics",
+        "type": "Def",
+        "fact": "If an object moves in a circular path with uniform speed, its motion is called Uniform Circular Motion."
+    },
+    {
+        "class": "9",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "The Island groups of India are Lakshadweep (Arabian Sea) and Andaman & Nicobar (Bay of Bengal)."
+    },
+    {
+        "class": "9",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The Tsarist autocracy in Russia collapsed in 1917 during the February Revolution."
+    },
+    {
+        "class": "9",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The Constituent Assembly took almost three years (two years, 11 months, and 18 days) to complete the Constitution."
+    },
+    {
+        "class": "9",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "A linear equation in two variables has infinitely many solutions."
+    },
+    {
+        "class": "9",
+        "subject": "Physics",
+        "type": "Value",
+        "fact": "G (Universal Gravitational Constant) value is $6.673 \\times 10^{-11} \\text{ Nm}^2/\\text{kg}^2$."
+    },
+    {
+        "class": "9",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "Atoms of different elements with the same mass number are called Isobars."
+    },
+    {
+        "class": "9",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Endoplasmic Reticulum (ER) serves as a channel for the transport of materials between regions of the cytoplasm."
+    },
+    {
+        "class": "9",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "The Aravali Hills are the oldest fold mountains in India."
+    },
+    {
+        "class": "9",
+        "subject": "Economics",
+        "type": "Def",
+        "fact": "Fixed Capital includes tools, machines, and buildings that can be used in production over many years."
+    },
+    {
+        "class": "9",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "Guernica is a famous painting by Picasso depicting the horrors of the Spanish Civil War."
+    },
+    {
+        "class": "9",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "The Golgi Apparatus is involved in the formation of lysosomes."
+    },
+    {
+        "class": "9",
+        "subject": "Physics",
+        "type": "Formula",
+        "fact": "Kinetic Energy formula: $E_k = \\frac{1}{2}mv^2$."
+    },
+    {
+        "class": "9",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "The sum of all probabilities in a sample space is always 1."
+    },
+    {
+        "class": "9",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "Tyndall Effect is the scattering of a beam of light by medium particles (seen in fog or dusty rooms)."
+    },
+    {
+        "class": "9",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The Right to Constitutional Remedies is called the \"Heart and Soul\" of the Constitution by Dr. Ambedkar."
+    },
+    {
+        "class": "9",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "Jet streams are high-altitude westerly winds in the troposphere."
+    },
+    {
+        "class": "9",
+        "subject": "Economics",
+        "type": "Def",
+        "fact": "Seasonal unemployment happens when people are unable to find jobs during some months of the year."
+    },
+    {
+        "class": "10",
+        "subject": "Science",
+        "type": "Fact",
+        "fact": "Bleaching powder ($CaOCl_2$) is produced by the action of chlorine on dry slaked lime."
+    },
+    {
+        "class": "10",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The \"Gutenberg Bible\" was the first book printed using the movable type printing press."
+    },
+    {
+        "class": "10",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "If the graph of a polynomial $p(x)$ intersects the x-axis at $n$ points, it has $n$ zeroes."
+    },
+    {
+        "class": "10",
+        "subject": "Biology",
+        "type": "Def",
+        "fact": "The process of breaking down food into a simpler form is called digestion."
+    },
+    {
+        "class": "10",
+        "subject": "Physics",
+        "type": "Formula",
+        "fact": "The power of a lens is the reciprocal of its focal length ($P = 1/f$)."
+    },
+    {
+        "class": "10",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "\"Sustainable development\" was first popularized by the Brundtland Commission Report in 1987."
+    },
+    {
+        "class": "10",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Metals are good conductors of electricity because they have free electrons."
+    },
+    {
+        "class": "10",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "Coming-together federations include the USA, Switzerland, and Australia."
+    },
+    {
+        "class": "10",
+        "subject": "Economics",
+        "type": "Def",
+        "fact": "Money acts as an intermediate in the exchange process; it is called a medium of exchange."
+    },
+    {
+        "class": "10",
+        "subject": "Physics",
+        "type": "Formula",
+        "fact": "Joule’s law of heating: $H = I^2Rt$."
+    },
+    {
+        "class": "10",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "The exchange of gases in leaves takes place through tiny pores called stomata."
+    },
+    {
+        "class": "10",
+        "subject": "Math",
+        "type": "Formula",
+        "fact": "The sum of the first $n$ terms of an AP is given by $S_n = \\frac{n}{2}[2a + (n-1)d]$."
+    },
+    {
+        "class": "10",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "Dr. B.R. Ambedkar organized Dalits into the Depressed Classes Association in 1930."
+    },
+    {
+        "class": "10",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "An alloy is a homogeneous mixture of a metal with other metals or non-metals."
+    },
+    {
+        "class": "10",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "The brain is divided into three main parts: fore-brain, mid-brain, and hind-brain."
+    },
+    {
+        "class": "10",
+        "subject": "Physics",
+        "type": "Def",
+        "fact": "A magnetic field is a quantity that has both direction and magnitude."
+    },
+    {
+        "class": "10",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "Rooftop rainwater harvesting is a technique to recharge groundwater."
+    },
+    {
+        "class": "10",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The use of English for official purposes was meant to stop in 1965, but protest led to its continuation."
+    },
+    {
+        "class": "10",
+        "subject": "Math",
+        "type": "Formula",
+        "fact": "The distance between two points $(x_1, y_1)$ and $(x_2, y_2)$ is $\\sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}$."
+    },
+    {
+        "class": "10",
+        "subject": "Science",
+        "type": "Fact",
+        "fact": "Respiration is an exothermic process because energy is released."
+    },
+    {
+        "class": "10",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "When a decomposition reaction is carried out by heating, it is called Thermal Decomposition."
+    },
+    {
+        "class": "10",
+        "subject": "Biology",
+        "type": "Def",
+        "fact": "Translocation is the transport of soluble products of photosynthesis in plants."
+    },
+    {
+        "class": "10",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "The least distance of distinct vision for a young adult with normal eye is about 25 cm."
+    },
+    {
+        "class": "10",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The Vernacular Press Act (1878) was modeled on the Irish Press Laws."
+    },
+    {
+        "class": "10",
+        "subject": "Math",
+        "type": "Rule",
+        "fact": "The product of the HCF and LCM of two numbers is equal to the product of the numbers."
+    },
+    {
+        "class": "10",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "Belgium shares borders with France, the Netherlands, Germany, and Luxembourg."
+    },
+    {
+        "class": "10",
+        "subject": "Economics",
+        "type": "Fact",
+        "fact": "Formal sources of credit in India include Banks and Cooperatives."
+    },
+    {
+        "class": "10",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Aqua Regia is a freshly prepared mixture of concentrated HCl and concentrated $HNO_3$ in a 3:1 ratio."
+    },
+    {
+        "class": "10",
+        "subject": "Biology",
+        "type": "Def",
+        "fact": "Phototropism is the movement of a plant part in response to light."
+    },
+    {
+        "class": "10",
+        "subject": "Physics",
+        "type": "Def",
+        "fact": "A solenoid is a coil of many circular turns of insulated copper wire wrapped closely in the shape of a cylinder."
+    },
+    {
+        "class": "10",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "Iron ore is the basic mineral and the backbone of industrial development."
+    },
+    {
+        "class": "10",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "If $sin A = cos A$, then the value of angle $A$ is $45^\\circ$."
+    },
+    {
+        "class": "10",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The First World War (1914) was the first modern industrial war."
+    },
+    {
+        "class": "10",
+        "subject": "Civics",
+        "type": "Def",
+        "fact": "A Political Party has three components: leaders, active members, and followers."
+    },
+    {
+        "class": "10",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "The functional group for carboxylic acid is $-COOH$."
+    },
+    {
+        "class": "10",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Binary fission is the simplest method of asexual reproduction in Amoeba."
+    },
+    {
+        "class": "10",
+        "subject": "Physics",
+        "type": "Formula",
+        "fact": "The index of refraction of a medium is $n = c/v$ (speed of light in vacuum / speed in medium)."
+    },
+    {
+        "class": "10",
+        "subject": "Economics",
+        "type": "Fact",
+        "fact": "Consumer Protection Act (COPRA) was enacted in 1986 by the Indian Government."
+    },
+    {
+        "class": "10",
+        "subject": "Math",
+        "type": "Formula",
+        "fact": "The surface area of a sphere is $4\\pi r^2$."
+    },
+    {
+        "class": "10",
+        "subject": "Science",
+        "type": "Fact",
+        "fact": "Corrosion of copper results in a green coating of basic copper carbonate."
+    },
+    {
+        "class": "11",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "A projectile's path is a parabola when air resistance is neglected."
+    },
+    {
+        "class": "11",
+        "subject": "Chemistry",
+        "type": "Principle",
+        "fact": "The Aufbau Principle states that electrons fill lower-energy orbitals first."
+    },
+    {
+        "class": "11",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "The taxonomic hierarchy order is: Kingdom, Phylum, Class, Order, Family, Genus, Species."
+    },
+    {
+        "class": "11",
+        "subject": "Math",
+        "type": "Formula",
+        "fact": "The number of subsets of a set with $n$ elements is $2^n$."
+    },
+    {
+        "class": "11",
+        "subject": "Economics",
+        "type": "Fact",
+        "fact": "A consumer is in equilibrium when the marginal utility of a good equals its price."
+    },
+    {
+        "class": "11",
+        "subject": "Physics",
+        "type": "Def",
+        "fact": "Viscosity is the internal friction between layers of a fluid in motion."
+    },
+    {
+        "class": "11",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Electronegativity increases across a period and decreases down a group."
+    },
+    {
+        "class": "11",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "The \"S-phase\" of the cell cycle is where DNA replication occurs."
+    },
+    {
+        "class": "11",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "A complex number can be represented as $a + bi$, where $i = \\sqrt{-1}$."
+    },
+    {
+        "class": "11",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The Mongols, under Genghis Khan, established the largest contiguous land empire in history."
+    },
+    {
+        "class": "11",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "The moment of inertia depends on the distribution of mass around the axis of rotation."
+    },
+    {
+        "class": "11",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Standard Temperature and Pressure (STP) is $0^{\\circ}C$ (273.15 K) and 1 atmosphere."
+    },
+    {
+        "class": "11",
+        "subject": "Biology",
+        "type": "Def",
+        "fact": "Enzymes that catalyze the breakdown of fats are called Lipases."
+    },
+    {
+        "class": "11",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "The slope of a vertical line is undefined."
+    },
+    {
+        "class": "11",
+        "subject": "Economics",
+        "type": "Def",
+        "fact": "\"Elasticity of demand\" measures the responsiveness of quantity demanded to a change in price."
+    },
+    {
+        "class": "11",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "Resonance occurs when the frequency of a forced vibration matches the object's natural frequency."
+    },
+    {
+        "class": "11",
+        "subject": "Chemistry",
+        "type": "Law",
+        "fact": "Boyle’s Law: Pressure is inversely proportional to Volume at a constant temperature."
+    },
+    {
+        "class": "11",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Ribosomes are made of RNA and proteins."
+    },
+    {
+        "class": "11",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "Permutations are used for \"Arrangements\" (order matters); Combinations are used for \"Selections\" (order doesn't)."
+    },
+    {
+        "class": "11",
+        "subject": "Economics",
+        "type": "Def",
+        "fact": "\"Opportunity Cost\" is the value of the next best alternative foregone."
+    },
+    {
+        "class": "11",
+        "subject": "Physics",
+        "type": "Law",
+        "fact": "Pascal's Law states that pressure applied to an enclosed fluid is transmitted undiminished to every portion of the fluid."
+    },
+    {
+        "class": "11",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "Hybridization is the process of intermixing of the orbitals of slightly different energies."
+    },
+    {
+        "class": "11",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Kingdom Monera includes all prokaryotic organisms like bacteria and blue-green algae."
+    },
+    {
+        "class": "11",
+        "subject": "Math",
+        "type": "Def",
+        "fact": "The limit of a function describes the behavior of the function near a specific point."
+    },
+    {
+        "class": "11",
+        "subject": "Economics",
+        "type": "Law",
+        "fact": "The Law of Diminishing Marginal Utility states that as more units are consumed, the satisfaction from each additional unit decreases."
+    },
+    {
+        "class": "11",
+        "subject": "Physics",
+        "type": "Law",
+        "fact": "Hooke's Law states that within the elastic limit, stress is directly proportional to strain."
+    },
+    {
+        "class": "11",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "Enthalpy ($H$) is the total heat content of a system."
+    },
+    {
+        "class": "11",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Bioluminescence is the property of a living organism to emit light (seen in Ctenophora)."
+    },
+    {
+        "class": "11",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "A circle is a special case of an ellipse where the eccentricity ($e$) is 0."
+    },
+    {
+        "class": "11",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "Cuneiform was the system of writing developed by the ancient Sumerians."
+    },
+    {
+        "class": "11",
+        "subject": "Physics",
+        "type": "Law",
+        "fact": "The Law of Conservation of Angular Momentum states that if no external torque acts, total angular momentum remains constant."
+    },
+    {
+        "class": "11",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "Oxidation Number is the charge an atom appears to have when electrons are assigned according to specific rules."
+    },
+    {
+        "class": "11",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Glycolysis occurs in the cytoplasm and does not require oxygen."
+    },
+    {
+        "class": "11",
+        "subject": "Math",
+        "type": "Formula",
+        "fact": "The slope-intercept form of a line is $y = mx + c$."
+    },
+    {
+        "class": "11",
+        "subject": "Economics",
+        "type": "Fact",
+        "fact": "Mean, Median, and Mode are the three most common measures of central tendency."
+    },
+    {
+        "class": "11",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "The Doppler Effect is the change in frequency of a wave in relation to an observer moving relative to the wave source."
+    },
+    {
+        "class": "11",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Hydrogen bonding occurs when H is bonded to highly electronegative elements like F, O, or N."
+    },
+    {
+        "class": "11",
+        "subject": "Biology",
+        "type": "Def",
+        "fact": "Phyllotaxy is the pattern of arrangement of leaves on the stem or branch."
+    },
+    {
+        "class": "11",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "$i^2 = -1, i^3 = -i, i^4 = 1$."
+    },
+    {
+        "class": "11",
+        "subject": "Economics",
+        "type": "Def",
+        "fact": "Correlation measures the strength and direction of a linear relationship between two variables."
+    },
+    {
+        "class": "12",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "In a capacitor, energy is stored in the electric field between the plates."
+    },
+    {
+        "class": "12",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "The half-life of a first-order reaction is independent of the initial concentration."
+    },
+    {
+        "class": "12",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "\"Golden Rice\" is a transgenic variety of rice rich in Vitamin A."
+    },
+    {
+        "class": "12",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "The area under a curve can be found using definite integrals."
+    },
+    {
+        "class": "12",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The \"Mahajanapadas\" were 16 powerful kingdoms in ancient India around the 6th century BCE."
+    },
+    {
+        "class": "12",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The \"Shock Therapy\" was a painful transition from a socialist to a capitalist economy in post-Soviet states."
+    },
+    {
+        "class": "12",
+        "subject": "Economics",
+        "type": "Def",
+        "fact": "\"Fiscal Deficit\" is the difference between the government's total expenditure and its total receipts (excluding borrowing)."
+    },
+    {
+        "class": "12",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "The de Broglie wavelength shows that every moving particle has wave-like properties."
+    },
+    {
+        "class": "12",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Adsorption is a surface phenomenon, while absorption is a bulk phenomenon."
+    },
+    {
+        "class": "12",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "\"Restriction Enzymes\" are often called chemical scalpels because they cut DNA at specific sites."
+    },
+    {
+        "class": "12",
+        "subject": "Math",
+        "type": "Theorem",
+        "fact": "A square matrix is invertible if and only if its determinant is non-zero."
+    },
+    {
+        "class": "12",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "Ibn Battuta was a Moroccan traveler who visited India during the reign of Muhammad bin Tughlaq."
+    },
+    {
+        "class": "12",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The \"Velvet Revolution\" refers to the peaceful transition of power in Czechoslovakia."
+    },
+    {
+        "class": "12",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "In a p-n junction diode, the depletion layer width increases under reverse bias."
+    },
+    {
+        "class": "12",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Coordination compounds use ligands to bond with a central metal atom."
+    },
+    {
+        "class": "12",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "The process of \"Transcription\" involves copying DNA into mRNA."
+    },
+    {
+        "class": "12",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "Two vectors are perpendicular if their dot product is zero."
+    },
+    {
+        "class": "12",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The \"Permanent Settlement\" in Bengal was introduced by Lord Cornwallis in 1793."
+    },
+    {
+        "class": "12",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "NITI Aayog replaced the Planning Commission of India in 2015."
+    },
+    {
+        "class": "12",
+        "subject": "Economics",
+        "type": "Fact",
+        "fact": "\"Balance of Payments\" records all economic transactions between a country and the rest of the world."
+    },
+    {
+        "class": "12",
+        "subject": "Physics",
+        "type": "Law",
+        "fact": "Gauss's Law relates the total electric flux through a closed surface to the net charge enclosed."
+    },
+    {
+        "class": "12",
+        "subject": "Chemistry",
+        "type": "Def",
+        "fact": "Molarity is the number of moles of solute dissolved in one liter of solution."
+    },
+    {
+        "class": "12",
+        "subject": "Biology",
+        "type": "Def",
+        "fact": "Oogenesis is the process of formation of a mature female gamete."
+    },
+    {
+        "class": "12",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "The Derivative of $sin(x)$ is $cos(x)$."
+    },
+    {
+        "class": "12",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The Vijayanagara Empire was founded by two brothers, Harihara and Bukka, in 1336."
+    },
+    {
+        "class": "12",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The United Nations has 6 principal organs, including the General Assembly and Security Council."
+    },
+    {
+        "class": "12",
+        "subject": "Economics",
+        "type": "Def",
+        "fact": "Narrow Money ($M1$) consists of currency with the public and demand deposits in banks."
+    },
+    {
+        "class": "12",
+        "subject": "Physics",
+        "type": "Law",
+        "fact": "Lenz’s Law gives the direction of the induced electromotive force (EMF)."
+    },
+    {
+        "class": "12",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Lanthanoid Contraction is the steady decrease in the size of atoms/ions with increasing atomic number."
+    },
+    {
+        "class": "12",
+        "subject": "Biology",
+        "type": "Theory",
+        "fact": "Natural Selection is the mechanism of evolution proposed by Charles Darwin."
+    },
+    {
+        "class": "12",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "A Unit Vector has a magnitude of exactly 1."
+    },
+    {
+        "class": "12",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The Santhal Rebellion occurred in 1855-56 against the Zamindars and British."
+    },
+    {
+        "class": "12",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The SAARC (South Asian Association for Regional Cooperation) was established in 1985."
+    },
+    {
+        "class": "12",
+        "subject": "Physics",
+        "type": "Def",
+        "fact": "Half-life is the time required for half of the radioactive nuclei in a sample to decay."
+    },
+    {
+        "class": "12",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Fuel cells are galvanic cells that convert the energy of combustion of fuels like hydrogen directly into electrical energy."
+    },
+    {
+        "class": "12",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Transcription occurs in the nucleus, while Translation occurs in the cytoplasm."
+    },
+    {
+        "class": "12",
+        "subject": "Math",
+        "type": "Def",
+        "fact": "The definite integral $\\int_a^b f(x)dx$ represents the area under the curve between $x=a$ and $x=b$."
+    },
+    {
+        "class": "12",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The Fifth Report was submitted to the British Parliament in 1813 on the administration of the East India Company."
+    },
+    {
+        "class": "12",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The NPT (Non-Proliferation Treaty) was signed in 1968 to stop the spread of nuclear weapons."
+    },
+    {
+        "class": "12",
+        "subject": "Economics",
+        "type": "Def",
+        "fact": "Fixed Exchange Rate is determined by the government, while Floating Exchange Rate is determined by market forces."
+    },
+    {
+        "class": "General",
+        "subject": "Science",
+        "type": "Value",
+        "fact": "1 calorie is approximately equal to 4.184 Joules."
+    },
+    {
+        "class": "General",
+        "subject": "Math",
+        "type": "Fact",
+        "fact": "A billion has 9 zeros; a million has 6 zeros."
+    },
+    {
+        "class": "General",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The right to vote in India is a legal right, not just a moral one."
+    },
+    {
+        "class": "General",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "The \"Loo\" is a hot, dry wind that blows in the northern plains of India in summer."
+    },
+    {
+        "class": "General",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The Suez Canal (opened 1869) reduced the distance between India and Europe by 7,000 km."
+    },
+    {
+        "class": "General",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Mitochondria have their own DNA and ribosomes."
+    },
+    {
+        "class": "General",
+        "subject": "Physics",
+        "type": "Value",
+        "fact": "The refractive index of diamond is 2.42, which is very high."
+    },
+    {
+        "class": "General",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Graphite is used as a lubricant because its layers can slide over each other."
+    },
+    {
+        "class": "General",
+        "subject": "Math",
+        "type": "Rule",
+        "fact": "The sum of probabilities of all elementary events of an experiment is 1."
+    },
+    {
+        "class": "General",
+        "subject": "Economics",
+        "type": "Fact",
+        "fact": "The \"Green Revolution\" increased food grain production primarily through HYV seeds."
+    },
+    {
+        "class": "General",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Human skin is the largest organ in the body."
+    },
+    {
+        "class": "General",
+        "subject": "Physics",
+        "type": "Value",
+        "fact": "Light travels at approximately $3 \\times 10^8$ meters per second."
+    },
+    {
+        "class": "General",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The \"Civil Code of 1804\" is also known as the Napoleonic Code."
+    },
+    {
+        "class": "General",
+        "subject": "Math",
+        "type": "Formula",
+        "fact": "A cylinder's volume is $\\pi r^2 h$."
+    },
+    {
+        "class": "General",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Ethanol is the alcohol used in alcoholic drinks."
+    },
+    {
+        "class": "General",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Blood pressure is measured using a Sphygmomanometer."
+    },
+    {
+        "class": "General",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "Convex mirrors are always used as side mirrors in cars to give a wider field of view."
+    },
+    {
+        "class": "General",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "The Sundarbans is the world's largest delta."
+    },
+    {
+        "class": "General",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "A Bill becomes an Act only after the President signs it."
+    },
+    {
+        "class": "General",
+        "subject": "Math",
+        "type": "Value",
+        "fact": "$100^{\\circ}$ Celsius is equal to 373.15 Kelvin."
+    },
+    {
+        "class": "General",
+        "subject": "Math",
+        "type": "Formula",
+        "fact": "The area of a trapezium is $\\frac{1}{2} \\times (sum \\ of \\ parallel \\ sides) \\times height$."
+    },
+    {
+        "class": "General",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Myopia is nearsightedness; it is corrected using a concave lens."
+    },
+    {
+        "class": "General",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The Declaration of the Rights of Man and Citizen was a core document of the French Revolution."
+    },
+    {
+        "class": "General",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "Weightlessness in a satellite is because the satellite is in a state of free fall."
+    },
+    {
+        "class": "General",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Isotopes of Hydrogen are Protium, Deuterium, and Tritium."
+    },
+    {
+        "class": "General",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "Kaveri, Krishna, Godavari, and Mahanadi are east-flowing rivers that form deltas."
+    },
+    {
+        "class": "General",
+        "subject": "Economics",
+        "type": "Fact",
+        "fact": "NABARD (National Bank for Agriculture and Rural Development) was set up in 1982."
+    },
+    {
+        "class": "General",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The Supreme Court of India was established on 26th January 1950."
+    },
+    {
+        "class": "General",
+        "subject": "Math",
+        "type": "Def",
+        "fact": "A Square is a rectangle with all sides equal."
+    },
+    {
+        "class": "General",
+        "subject": "Physics",
+        "type": "Fact",
+        "fact": "Resistance increases with temperature for most metals."
+    },
+    {
+        "class": "General",
+        "subject": "Biology",
+        "type": "Fact",
+        "fact": "Antibodies are proteins produced by B-cells to fight pathogens."
+    },
+    {
+        "class": "General",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Diamond is the hardest natural substance known."
+    },
+    {
+        "class": "General",
+        "subject": "History",
+        "type": "Fact",
+        "fact": "The Simon Commission (1928) was boycotted because it had no Indian members."
+    },
+    {
+        "class": "General",
+        "subject": "Geography",
+        "type": "Fact",
+        "fact": "Evergreen forests are found in areas receiving more than 200 cm of rainfall."
+    },
+    {
+        "class": "General",
+        "subject": "Math",
+        "type": "Value",
+        "fact": "The value of $tan 45^\\circ$ is 1."
+    },
+    {
+        "class": "General",
+        "subject": "Physics",
+        "type": "Formula",
+        "fact": "Work is defined as the product of force and displacement ($W = Fs$)."
+    },
+    {
+        "class": "General",
+        "subject": "Civics",
+        "type": "Fact",
+        "fact": "The Minimum age to become the President of India is 35 years."
+    },
+    {
+        "class": "General",
+        "subject": "Biology",
+        "type": "Def",
+        "fact": "Homeostasis is the maintenance of a stable internal environment in the body."
+    },
+    {
+        "class": "General",
+        "subject": "Chemistry",
+        "type": "Fact",
+        "fact": "Fullerenes are an allotrope of carbon, with $C_{60}$ being the most common."
+    },
+    {
+        "class": "General",
+        "subject": "Math",
+        "type": "Formula",
+        "fact": "The Euler's Formula for polyhedrons is $V - E + F = 2$."
+    }
+]
