@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import CustomDropdown from './CustomDropdown';
-import { SUBJECTS_BY_CLASS } from '../data/subjectData';
-import { NCERT_SYLLABUS } from '../data/ncertData';
 
 const PracticeConfig = ({ onSubmit, isLoading }) => {
     const [formData, setFormData] = useState({
@@ -12,9 +10,29 @@ const PracticeConfig = ({ onSubmit, isLoading }) => {
         difficulty: 'Standard'
     });
 
-    // Update subject when class changes to default to first available subject
+    const [syllabus, setSyllabus] = useState(null);
+    const [loadingSyllabus, setLoadingSyllabus] = useState(true);
+
+    // Fetch Syllabus on mount
     useEffect(() => {
-        const availableSubjects = SUBJECTS_BY_CLASS[formData.class] || [];
+        fetch('http://localhost:3000/api/v1/syllabus')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) setSyllabus(data.data);
+                setLoadingSyllabus(false);
+            })
+            .catch(err => {
+                console.error("Failed to load syllabus", err);
+                setLoadingSyllabus(false);
+            });
+    }, []);
+
+    // Update subject when class changes
+    useEffect(() => {
+        if (!syllabus || !formData.class) return;
+        const classData = syllabus[`class_${formData.class}`] || {};
+        const availableSubjects = Object.keys(classData);
+
         if (!availableSubjects.includes(formData.subject)) {
             setFormData(prev => ({
                 ...prev,
@@ -22,10 +40,9 @@ const PracticeConfig = ({ onSubmit, isLoading }) => {
                 chapters: 'All Chapters'
             }));
         } else {
-            // Reset chapters on class change
             setFormData(prev => ({ ...prev, chapters: 'All Chapters' }));
         }
-    }, [formData.class]);
+    }, [formData.class, syllabus]);
 
     // Reset chapters when subject changes
     useEffect(() => {
@@ -69,17 +86,19 @@ const PracticeConfig = ({ onSubmit, isLoading }) => {
     ];
 
     // Get subject options based on selected class
-    const subjectOptions = (SUBJECTS_BY_CLASS[formData.class] || []).map(sub => ({
-        value: sub,
-        label: sub
-    }));
+    const getSubjectOptions = () => {
+        if (!syllabus || !formData.class) return [];
+        const classData = syllabus[`class_${formData.class}`];
+        if (!classData) return [];
+        return Object.keys(classData).map(sub => ({ value: sub, label: sub }));
+    };
+    const subjectOptions = getSubjectOptions();
 
     // Get chapter options based on Class & Subject
     const getChapterOptions = () => {
-        const classData = NCERT_SYLLABUS[formData.class];
-        if (!classData) return [];
-        const subjectData = classData[formData.subject];
-        if (!subjectData) return [];
+        if (!syllabus || !formData.class || !formData.subject) return [];
+        const classData = syllabus[`class_${formData.class}`] || {};
+        const subjectData = classData[formData.subject] || {};
 
         const chapters = Object.keys(subjectData).map(chapter => ({
             value: chapter,
@@ -92,6 +111,17 @@ const PracticeConfig = ({ onSubmit, isLoading }) => {
         ];
     };
     const chapterOptions = getChapterOptions();
+
+    if (loadingSyllabus) {
+        return (
+            <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/50 p-8 w-full flex justify-center items-center min-h-[400px]">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-8 h-8 border-4 border-slate-200 border-t-fuchsia-600 rounded-full animate-spin"></div>
+                    <p className="text-slate-500 font-medium">Loading syllabus...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/50 p-8 w-full transition-all hover:shadow-violet-500/10 hover:border-violet-200">
@@ -231,7 +261,7 @@ const PracticeConfig = ({ onSubmit, isLoading }) => {
                         </span>
                     </button>
                     <p className="text-xs text-center text-slate-400 mt-3">
-                        *AI generation might take 30-60s. Results are estimated.
+                        *Powered by Groq. Paper generation takes ~3-5 seconds. Results are estimated.
                     </p>
                 </div>
             </form>

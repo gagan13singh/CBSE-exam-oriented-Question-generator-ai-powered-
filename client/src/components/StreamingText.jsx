@@ -4,16 +4,27 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
-const StreamingText = ({ text, speed = 10, className }) => {
-    const [displayedText, setDisplayedText] = useState('');
-    const [isComplete, setIsComplete] = useState(false);
+/**
+ * animate=true  → typewriter effect (only on fresh question generation)
+ * animate=false → instant full render (when navigating Next/Previous)
+ */
+const StreamingText = ({ text, speed = 10, className, animate = true }) => {
+    const [displayedText, setDisplayedText] = useState(animate ? '' : (text || ''));
+    const [isComplete, setIsComplete] = useState(!animate);
 
     useEffect(() => {
-        setIsComplete(false);
-        setDisplayedText('');
-
         if (!text) return;
 
+        // No animation — just show text instantly
+        if (!animate) {
+            setDisplayedText(text);
+            setIsComplete(true);
+            return;
+        }
+
+        // Typewriter animation
+        setIsComplete(false);
+        setDisplayedText('');
         let index = 0;
         const intervalId = setInterval(() => {
             setDisplayedText((prev) => prev + text.charAt(index));
@@ -25,7 +36,7 @@ const StreamingText = ({ text, speed = 10, className }) => {
         }, speed);
 
         return () => clearInterval(intervalId);
-    }, [text, speed]);
+    }, [text, speed, animate]);
 
     return (
         <span className={className}>
@@ -33,7 +44,7 @@ const StreamingText = ({ text, speed = 10, className }) => {
                 remarkPlugins={[remarkMath]}
                 rehypePlugins={[rehypeKatex]}
                 components={{
-                    p: ({ children }) => <span className="inline">{children}</span> // Render paragraphs as spans to maintain inline flow where needed
+                    p: ({ children }) => <span className="inline">{children}</span>
                 }}
             >
                 {displayedText}
@@ -46,3 +57,4 @@ const StreamingText = ({ text, speed = 10, className }) => {
 };
 
 export default StreamingText;
+

@@ -6,13 +6,19 @@ import Footer from './components/Footer';
 import PracticeConfig from './components/PracticeConfig';
 import PracticeTestInterface from './components/PracticeTestInterface';
 import PracticeResult from './components/PracticeResult';
+import ModelBadge from './components/ModelBadge';
+import { useHealth } from './hooks/useHealth';
+import { ENDPOINTS } from './config';
 
 function App() {
+  const health = useHealth();
+
   // Mode State: 'generator' | 'practice'
   const [appMode, setAppMode] = useState('generator');
 
   // Generator State
   const [questionData, setQuestionData] = useState(null);
+  const [questionMeta, setQuestionMeta] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,24 +35,24 @@ function App() {
     setLoadingContext({ class: formData.class, subject: formData.subject });
     setError('');
     setQuestionData(null);
+    setQuestionMeta(null);
     setCurrentQuestionIndex(0);
 
     try {
-      const response = await fetch('http://localhost:3000/generate-questions', {
+      const response = await fetch(ENDPOINTS.generateQuestions, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate question');
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to generate questions');
       }
 
       setQuestionData(data.data);
+      setQuestionMeta(data.meta);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -62,15 +68,14 @@ function App() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/generate-paper', {
+      const response = await fetch(ENDPOINTS.generatePaper, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(configData)
       });
 
       const data = await response.json();
-
-      if (!data.success) throw new Error(data.error || 'Failed to generate paper');
+      if (!response.ok || !data.success) throw new Error(data.error || 'Failed to generate paper');
 
       setPracticeData(data.data);
       setPracticeState('test');
@@ -84,17 +89,16 @@ function App() {
   };
 
   const submitPracticePaper = async (submissions) => {
-    setLoading(true); // Re-use loading state for grading
-    // No specific loading context for grading, or could imply it from previous state
+    setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/grade-paper', {
+      const response = await fetch(ENDPOINTS.gradePaper, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ submissions })
       });
 
       const data = await response.json();
-      if (!data.success) throw new Error(data.error || 'Failed to grade paper');
+      if (!response.ok || !data.success) throw new Error(data.error || 'Failed to grade paper');
 
       setPracticeResult(data.data);
       setPracticeState('result');
@@ -114,7 +118,7 @@ function App() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden selection:bg-purple-500 selection:text-white flex flex-col">
+    <div className="relative min-h-screen selection:bg-purple-500 selection:text-white flex flex-col">
 
       {/* Animated Background Blobs */}
       <div className="absolute top-0 left-0 w-full h-full -z-10 bg-slate-50">
@@ -131,6 +135,11 @@ function App() {
             <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent font-bold tracking-wide uppercase text-sm">
               ✨ Next-Gen Exam Prep
             </span>
+          </div>
+
+          {/* Model Badge */}
+          <div className="flex justify-center mb-3">
+            <ModelBadge health={health} />
           </div>
           <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight text-slate-900 leading-tight">
             Create. Practice. <br />
@@ -164,12 +173,16 @@ function App() {
           {/* ERROR DISPLAY */}
           {error && (
             <div className="max-w-2xl mx-auto mb-8 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm animate-fade-in flex items-start gap-3">
-              <svg className="h-5 w-5 text-red-500 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+              <svg className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
-              <div>
-                <h3 className="text-sm font-bold text-red-800">Something went wrong</h3>
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="flex-1">
+                <h3 className="text-sm font-bold text-red-800">Could not generate questions</h3>
+                <p className="text-sm text-red-700 mt-0.5">{error}</p>
+                <button
+                  onClick={() => setError('')}
+                  className="text-xs text-red-500 underline mt-1 hover:text-red-700"
+                >Dismiss</button>
               </div>
             </div>
           )}
@@ -215,9 +228,16 @@ function App() {
                   <div className="pb-10">
                     <div className="flex items-center justify-between mb-6">
                       <h2 className="text-2xl font-bold text-slate-800">Generated Questions</h2>
-                      <span className="px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-sm font-bold">
-                        Question {currentQuestionIndex + 1} of {Array.isArray(questionData) ? questionData.length : 1}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        {questionMeta && (
+                          <span className="text-xs text-slate-400 font-medium">
+                            {questionMeta.provider === 'groq' ? '⚡' : '🐢'} via {questionMeta.model} · {questionMeta.rag_source}
+                          </span>
+                        )}
+                        <span className="px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-sm font-bold">
+                          {currentQuestionIndex + 1} / {Array.isArray(questionData) ? questionData.length : 1}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Single Question Card */}
@@ -231,6 +251,7 @@ function App() {
                               key={currentQuestionIndex} // Key forces re-render for animation/streaming
                               data={currentQuestion}
                               index={currentQuestionIndex + 1}
+                              animate={currentQuestionIndex === 0}
                             />
                           </div>
                         );
@@ -276,9 +297,11 @@ function App() {
 
           {/* CONTENT: PRACTICE MODE */}
           {!loading && appMode === 'practice' && (
-            <div className="animate-slide-up w-full max-w-4xl mx-auto">
+            <div className="animate-slide-up w-full mx-auto">
               {practiceState === 'config' && (
-                <PracticeConfig onSubmit={generatePracticePaper} isLoading={loading} />
+                <div className="max-w-4xl mx-auto">
+                  <PracticeConfig onSubmit={generatePracticePaper} isLoading={loading} />
+                </div>
               )}
 
               {practiceState === 'test' && practiceData && (
@@ -290,10 +313,12 @@ function App() {
               )}
 
               {practiceState === 'result' && practiceResult && (
-                <PracticeResult
-                  resultData={practiceResult}
-                  onRetry={resetPractice}
-                />
+                <div className="max-w-4xl mx-auto">
+                  <PracticeResult
+                    resultData={practiceResult}
+                    onRetry={resetPractice}
+                  />
+                </div>
               )}
             </div>
           )}

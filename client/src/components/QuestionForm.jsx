@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import CustomDropdown from './CustomDropdown';
-import { SUBJECTS_BY_CLASS } from '../data/subjectData';
-import { NCERT_SYLLABUS } from '../data/ncertData';
 
 const QuestionForm = ({ onSubmit, isLoading }) => {
     const [formData, setFormData] = useState({
@@ -13,10 +11,29 @@ const QuestionForm = ({ onSubmit, isLoading }) => {
         questionType: ''
     });
 
-    // Update subject when class changes to default to first available subject
+    const [syllabus, setSyllabus] = useState(null);
+    const [loadingSyllabus, setLoadingSyllabus] = useState(true);
+
+    // Fetch Syllabus on mount
     useEffect(() => {
-        const availableSubjects = SUBJECTS_BY_CLASS[formData.class] || [];
-        // Reset or default subject
+        fetch('http://localhost:3000/api/v1/syllabus')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) setSyllabus(data.data);
+                setLoadingSyllabus(false);
+            })
+            .catch(err => {
+                console.error("Failed to load syllabus", err);
+                setLoadingSyllabus(false);
+            });
+    }, []);
+
+    // Update subject when class changes
+    useEffect(() => {
+        if (!syllabus || !formData.class) return;
+        const classData = syllabus[`class_${formData.class}`] || {};
+        const availableSubjects = Object.keys(classData);
+
         if (!availableSubjects.includes(formData.subject)) {
             setFormData(prev => ({
                 ...prev,
@@ -25,10 +42,9 @@ const QuestionForm = ({ onSubmit, isLoading }) => {
                 topic: ''
             }));
         } else {
-            // Even if subject stays, class change implies different syllabus
             setFormData(prev => ({ ...prev, chapter: '', topic: '' }));
         }
-    }, [formData.class]);
+    }, [formData.class, syllabus]);
 
     // Update chapter when subject changes
     useEffect(() => {
@@ -78,17 +94,19 @@ const QuestionForm = ({ onSubmit, isLoading }) => {
     ];
 
     // Get subject options based on selected class
-    const subjectOptions = (SUBJECTS_BY_CLASS[formData.class] || []).map(sub => ({
-        value: sub,
-        label: sub
-    }));
+    const getSubjectOptions = () => {
+        if (!syllabus || !formData.class) return [];
+        const classData = syllabus[`class_${formData.class}`];
+        if (!classData) return [];
+        return Object.keys(classData).map(sub => ({ value: sub, label: sub }));
+    };
+    const subjectOptions = getSubjectOptions();
 
     // Get chapter options based on Class & Subject
     const getChapterOptions = () => {
-        const classData = NCERT_SYLLABUS[formData.class];
-        if (!classData) return [];
-        const subjectData = classData[formData.subject];
-        if (!subjectData) return [];
+        if (!syllabus || !formData.class || !formData.subject) return [];
+        const classData = syllabus[`class_${formData.class}`] || {};
+        const subjectData = classData[formData.subject] || {};
 
         return Object.keys(subjectData).map(chapter => ({
             value: chapter,
@@ -99,19 +117,28 @@ const QuestionForm = ({ onSubmit, isLoading }) => {
 
     // Get topic options based on Chapter
     const getTopicOptions = () => {
-        if (!formData.chapter) return [];
-        const classData = NCERT_SYLLABUS[formData.class];
-        if (!classData) return [];
-        const subjectData = classData[formData.subject];
-        if (!subjectData) return [];
-
+        if (!syllabus || !formData.class || !formData.subject || !formData.chapter) return [];
+        const classData = syllabus[`class_${formData.class}`] || {};
+        const subjectData = classData[formData.subject] || {};
         const topics = subjectData[formData.chapter] || [];
+        
         return topics.map(topic => ({
             value: topic,
             label: topic
         }));
     };
     const topicOptions = getTopicOptions();
+
+    if (loadingSyllabus) {
+        return (
+            <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/50 p-8 w-full flex justify-center items-center min-h-[400px]">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-8 h-8 border-4 border-slate-200 border-t-violet-600 rounded-full animate-spin"></div>
+                    <p className="text-slate-500 font-medium">Loading syllabus...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/50 p-8 w-full transition-all hover:shadow-violet-500/10 hover:border-violet-200">

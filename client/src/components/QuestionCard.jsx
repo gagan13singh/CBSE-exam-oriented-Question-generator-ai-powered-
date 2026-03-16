@@ -7,7 +7,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import StreamingText from './StreamingText';
 
-const QuestionCard = ({ data, index }) => {
+const QuestionCard = ({ data, index, animate = false }) => {
     const cardRef = useRef();
 
     const handleDownload = async () => {
@@ -58,6 +58,7 @@ const QuestionCard = ({ data, index }) => {
                             text={data.question}
                             speed={15}
                             className="block"
+                            animate={animate}
                         />
                     ) : (
                         <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
@@ -161,7 +162,7 @@ const QuestionCard = ({ data, index }) => {
                         <div className="text-slate-700 leading-relaxed text-lg bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
                             {/* Stream answer text if plain string, else render directly */}
                             {typeof data.answer === 'string' ? (
-                                <StreamingText text={data.answer} speed={5} className="block" />
+                                <StreamingText text={data.answer} speed={5} className="block" animate={animate} />
                             ) : (
                                 <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                                     {String(data.answer || '')}

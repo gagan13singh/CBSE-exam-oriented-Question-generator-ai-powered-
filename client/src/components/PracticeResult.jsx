@@ -9,9 +9,12 @@ const PracticeResult = ({ resultData, onRetry }) => {
     const percentage = Math.round((total_score / max_total_score) * 100);
 
     let gradeColor = 'text-red-500';
-    if (percentage >= 80) gradeColor = 'text-emerald-500';
-    else if (percentage >= 60) gradeColor = 'text-blue-500';
-    else if (percentage >= 40) gradeColor = 'text-yellow-500';
+    let gradeBadge = 'Needs Work';
+    let gradeLetter = 'D';
+    if (percentage >= 90) { gradeColor = 'text-emerald-500'; gradeBadge = 'Excellent'; gradeLetter = 'A+'; }
+    else if (percentage >= 80) { gradeColor = 'text-emerald-400'; gradeBadge = 'Very Good'; gradeLetter = 'A'; }
+    else if (percentage >= 60) { gradeColor = 'text-blue-500'; gradeBadge = 'Good'; gradeLetter = 'B'; }
+    else if (percentage >= 40) { gradeColor = 'text-yellow-500'; gradeBadge = 'Fair'; gradeLetter = 'C'; }
 
     return (
         <div className="animate-slide-up space-y-8 pb-20">
@@ -49,14 +52,24 @@ const PracticeResult = ({ resultData, onRetry }) => {
                                 className="animate-[dash_1s_ease-out_forwards]"
                             />
                         </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className={`text-4xl font-black ${gradeColor}`}>{total_score}</span>
-                            <span className="text-slate-400 text-sm font-semibold">/ {max_total_score}</span>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
+                            <span className={`text-5xl font-black ${gradeColor} tracking-tighter leading-none`}>{total_score}</span>
+                            <span className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-1">/ {max_total_score} Marks</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="text-slate-600 italic mb-6">"{overall_feedback}"</div>
+                <div className="flex flex-col items-center justify-center mb-6 gap-2">
+                    <div className={`px-4 py-1.5 rounded-full font-bold text-sm border-2 ${
+                        percentage >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                        percentage >= 60 ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                        percentage >= 40 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                        'bg-red-50 text-red-700 border-red-200'
+                    }`}>
+                        {gradeLetter} — {percentage}% ({gradeBadge})
+                    </div>
+                    <div className="text-slate-600 italic mt-2 text-lg font-medium px-4">"{overall_feedback}"</div>
+                </div>
 
                 <button
                     onClick={onRetry}
@@ -81,14 +94,20 @@ const PracticeResult = ({ resultData, onRetry }) => {
                         </div>
 
                         {/* Model vs Student Answer */}
-                        <div className="grid md:grid-cols-2 gap-6 mb-4">
-                            <div className="bg-slate-50 p-4 rounded-xl">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Student Answer</h4>
-                                <p className="text-slate-700">{item.student_answer || "No answer provided."}</p>
+                        <div className="grid md:grid-cols-2 gap-6 mb-5">
+                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-inner">
+                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                    Your Answer
+                                </h4>
+                                <p className="text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">{item.student_answer || "No answer provided."}</p>
                             </div>
-                            <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                                <h4 className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Model Answer / Key Points</h4>
-                                <div className="prose prose-sm prose-emerald">
+                            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-2xl border border-emerald-100/50 shadow-sm">
+                                <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Model Answer / Key Points
+                                </h4>
+                                <div className="prose prose-sm prose-emerald font-medium">
                                     <ReactMarkdown
                                         remarkPlugins={[remarkMath]}
                                         rehypePlugins={[rehypeKatex]}
