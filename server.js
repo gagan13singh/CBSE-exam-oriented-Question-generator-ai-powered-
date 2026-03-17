@@ -26,15 +26,24 @@ const statusRouter = require('./routes/status');
 app.use('/api/v1/status', statusRouter);
 
 // ─── Security ─────────────────────────────────────────────────────────────────
-app.use(helmet());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://cbse-exam-oriented-question-generat.vercel.app',
+   'https://ques-gen.vercel.app',
+  'https://cbse-exam-oriented-question-generator-ai-powered-nhs0e486m.vercel.app'
+];
 
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://cbse-exam-oriented-question-generat.vercel.app'
-  ],
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
+  origin: function (origin, callback) {
+    // allow requests with no origin (like Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"));
+    }
+  }
 }));
 
 // ─── Body Parsing ──────────────────────────────────────────────────────────────
