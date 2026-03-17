@@ -1,3 +1,11 @@
+/**
+ * src/components/PracticeTestInterface.jsx
+ * FIXES:
+ *  1. Wider question column (flex:1), sidebar 260px fixed, timer right-aligned
+ *  2. Navigator scrolls to question via refs
+ *  3. Anti-cheat: tab switch / visibility change / blur auto-submits silently
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
@@ -5,318 +13,407 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
+const MD = ({ children }) => (
+    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+        {String(children || '')}
+    </ReactMarkdown>
+);
+
 const PracticeTestInterface = ({ testData, onSubmit, onBack }) => {
     const [answers, setAnswers] = useState({});
-    const [timeLeft, setTimeLeft] = useState(testData.time_allowed_mins * 60); // in seconds
+    const [timeLeft, setTimeLeft] = useState((testData.time_allowed_mins || 30) * 60);
     const [submitting, setSubmitting] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [cheatWarning, setCheatWarning] = useState(null); // null | 'tab' | 'blur'
     const questionRefs = useRef({});
+    const submitCalledRef = useRef(false); // prevent double-submit
+    const answersRef = useRef({});    // always-fresh ref for async callbacks
 
-    // Prevent background scrolling when modal or grading overlay is open
+    // Keep answersRef in sync
+    useEffect(() => { answersRef.current = answers; }, [answers]);
+
+    // ── Body scroll lock ──
     useEffect(() => {
-        if (showConfirmModal || submitting) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
+        document.body.style.overflow = (showConfirmModal || submitting) ? 'hidden' : 'unset';
         return () => { document.body.style.overflow = 'unset'; };
     }, [showConfirmModal, submitting]);
 
+    // ── Countdown ──
     useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    executeSubmit(); // Auto submit
-                    return 0;
-                }
+        const interval = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) { clearInterval(interval); silentSubmit('time'); return 0; }
                 return prev - 1;
             });
         }, 1000);
-        return () => clearInterval(timer);
+        return () => clearInterval(interval);
     }, []);
 
-    const handleAnswerChange = (questionId, value) => {
-        setAnswers(prev => ({ ...prev, [questionId]: value }));
-    };
+    // ══════════════════════════════════════════════
+    //  ANTI-CHEAT: visibility + blur detection
+    // ══════════════════════════════════════════════
+    useEffect(() => {
+        let cheatTimeout = null;
 
-    const scrollToQuestion = (questionId) => {
-        questionRefs.current[questionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'hidden') {
+                // Give 1.5s grace (could be a quick accidental switch)
+                // then auto-submit
+                cheatTimeout = setTimeout(() => {
+                    silentSubmit('tab');
+                }, 1500);
+            } else {
+                // Came back within grace — cancel
+                if (cheatTimeout) clearTimeout(cheatTimeout);
+            }
+        };
 
-    const executeSubmit = async () => {
-        setSubmitting(true);
-        setShowConfirmModal(false);
-        const submissions = [];
+        const handleBlur = () => {
+            // Window lost focus (alt-tab, another app, screen share dialog)
+            cheatTimeout = setTimeout(() => {
+                silentSubmit('blur');
+            }, 2000);
+        };
 
+        const handleFocus = () => {
+            if (cheatTimeout) clearTimeout(cheatTimeout);
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('blur', handleBlur);
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('blur', handleBlur);
+            window.removeEventListener('focus', handleFocus);
+            if (cheatTimeout) clearTimeout(cheatTimeout);
+        };
+    }, []);
+
+    // ── Build submissions from current answers ──
+    const buildSubmissions = (currentAnswers) => {
+        const subs = [];
         testData.sections.forEach(section => {
             section.questions.forEach(q => {
-                const rawAnswer = answers[q.id];
-                const cleanAnswer = (!rawAnswer || rawAnswer.trim() === '') ? "[NO ANSWER PROVIDED]" : rawAnswer;
-
-                submissions.push({
+                const raw = currentAnswers[q.id] || '';
+                subs.push({
                     question_id: q.id,
                     question: q.question,
-                    model_answer: q.correct_option || q.model_answer || "Refer to text.",
-                    student_answer: cleanAnswer,
-                    marks: q.marks
+                    question_type: q.type,
+                    model_answer: q.model_answer || q.correct_option || q.explanation || 'N/A',
+                    student_answer: raw.trim() || 'No answer provided.',
+                    marks: q.marks,
                 });
             });
         });
+        return subs;
+    };
 
-        await onSubmit(submissions);
+    // ── Silent auto-submit (no modal, no warning) ──
+    const silentSubmit = async (reason) => {
+        if (submitCalledRef.current) return;
+        submitCalledRef.current = true;
+        setSubmitting(true);
+        setShowConfirmModal(false);
+        await onSubmit(buildSubmissions(answersRef.current));
         setSubmitting(false);
     };
 
-    const handleModalSubmit = () => setShowConfirmModal(true);
-
-    const formatTime = (seconds) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    // ── Normal submit (user clicked button) ──
+    const executeSubmit = async () => {
+        if (submitCalledRef.current) return;
+        submitCalledRef.current = true;
+        setSubmitting(true);
+        setShowConfirmModal(false);
+        await onSubmit(buildSubmissions(answersRef.current));
+        setSubmitting(false);
     };
 
-    // Calculate answers
-    let totalQuestions = 0;
-    testData.sections.forEach(s => totalQuestions += s.questions.length);
-    const answeredCount = Object.keys(answers).filter(k => answers[k] && answers[k].trim() !== '').length;
-    const progressPercent = Math.round((answeredCount / totalQuestions) * 100) || 0;
+    const formatTime = s => {
+        const m = Math.floor(s / 60);
+        return `${m}:${(s % 60 < 10 ? '0' : '') + (s % 60)}`;
+    };
 
-    let globalQIdx = 1; // Running offset for side panel Q numbers
+    const handleAnswerChange = (qId, val) =>
+        setAnswers(prev => ({ ...prev, [qId]: val }));
+
+    const scrollToQuestion = qId => {
+        const el = questionRefs.current[qId];
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    let totalQ = 0;
+    testData.sections.forEach(s => { totalQ += s.questions.length; });
+    const answeredCount = Object.keys(answers).filter(k => answers[k]?.trim()).length;
+    const progressPct = Math.round((answeredCount / totalQ) * 100) || 0;
+    const timerDanger = timeLeft < 300;
+    const timerColor = timeLeft < 120 ? '#ef4444' : timerDanger ? '#fbbf24' : 'var(--accent2)';
+
+    const textareaBase = {
+        width: '100%',
+        padding: '12px 14px',
+        background: 'rgba(255,255,255,0.06)',
+        border: '1px solid var(--border)',
+        borderRadius: 11,
+        color: '#e2e8f0',
+        fontSize: 14,
+        fontFamily: 'DM Sans, sans-serif',
+        lineHeight: 1.65,
+        resize: 'vertical',
+        outline: 'none',
+        transition: 'all .2s',
+    };
 
     return (
-        <div className="animate-fade-in pb-20 max-w-7xl mx-auto w-full">
-            
-            {/* Split Layout Container */}
-            <div className="grid lg:grid-cols-12 gap-8 items-start relative">
-                
-                {/* 1. Main Content Area (Questions) */}
-                <div className="lg:col-span-8 space-y-8">
-                    {/* Mobile Header (Hidden on Desktop) */}
-                    <div className="lg:hidden sticky top-4 z-30 bg-white/90 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200 p-4 flex justify-between items-center mb-8">
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-800 line-clamp-1">{testData.title || "Practice Test"}</h2>
-                        </div>
-                        <div className={`text-2xl font-mono font-bold ${timeLeft < 300 ? 'text-red-600 animate-pulse' : 'text-slate-700'}`}>
-                            {formatTime(timeLeft)}
-                        </div>
+        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', paddingBottom: 60, width: '100%' }}>
+
+            {/* ══ LEFT: Questions (flex-1) ══ */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+
+                {/* Paper header */}
+                <div style={{
+                    background: 'var(--surface)', border: '1px solid var(--border)',
+                    borderRadius: 16, padding: '16px 20px', marginBottom: 20,
+                }}>
+                    <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>
+                        {testData.title || 'Practice Test'}
                     </div>
+                    <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {totalQ} questions · {testData.time_allowed_mins || 30} min · CBSE pattern
+                        <span style={{
+                            padding: '1px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                            background: 'rgba(239,68,68,.1)', border: '1px solid rgba(239,68,68,.2)', color: '#ef4444',
+                        }}>
+                            🔒 Anti-cheat active
+                        </span>
+                    </div>
+                </div>
 
-                    {testData.sections.map((section, sIdx) => (
-                        <div key={sIdx} className="space-y-6">
-                            <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest border-b-2 border-slate-200 pb-3 flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold">
-                                    {String.fromCharCode(65 + sIdx)}
-                                </span>
-                                Section {section.name}
-                            </h3>
+                {/* Sections + Questions */}
+                {testData.sections.map((section, sIdx) => (
+                    <div key={sIdx} style={{ marginBottom: 28 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                            <div style={{
+                                width: 30, height: 30, borderRadius: 8,
+                                background: 'var(--accent)', color: '#fff',
+                                fontSize: 12, fontWeight: 700,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                            }}>
+                                {section.name?.charAt(section.name.length - 1) || String.fromCharCode(65 + sIdx)}
+                            </div>
+                            <div>
+                                <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
+                                    {section.name}
+                                </div>
+                                <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                                    {section.questions.length} question{section.questions.length !== 1 ? 's' : ''}
+                                </div>
+                            </div>
+                        </div>
 
-                            {section.questions.map((q, localQIdx) => {
-                                const currentNumber = globalQIdx++;
-                                const isAnswered = answers[q.id] && answers[q.id].trim() !== '';
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                            {section.questions.map((q, qIdx) => {
+                                let gNum = qIdx + 1;
+                                for (let si = 0; si < sIdx; si++) gNum += testData.sections[si].questions.length;
+                                const answered = !!answers[q.id]?.trim();
 
                                 return (
-                                    <div 
-                                        key={q.id} 
-                                        ref={el => questionRefs.current[q.id] = el}
-                                        className={`bg-white rounded-[2rem] p-8 shadow-sm border-2 transition-all duration-300 ${isAnswered ? 'border-emerald-200 bg-emerald-50/10' : 'border-slate-100'}`}
+                                    <div
+                                        key={q.id}
+                                        ref={el => { questionRefs.current[q.id] = el; }}
+                                        style={{
+                                            background: 'var(--surface)',
+                                            border: `1px solid ${answered ? 'rgba(99,102,241,.4)' : 'var(--border)'}`,
+                                            borderRadius: 16, overflow: 'hidden',
+                                            transition: 'border-color .2s',
+                                            scrollMarginTop: 90,
+                                        }}
                                     >
-                                        <div className="flex justify-between items-start mb-6">
-                                            <div className="flex items-center gap-4">
-                                                <span className={`inline-flex items-center justify-center w-10 h-10 rounded-xl font-bold text-lg shadow-sm ${isAnswered ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                                                    Q{currentNumber}
-                                                </span>
-                                                {isAnswered && <span className="text-xs font-bold text-emerald-500 uppercase tracking-wide flex items-center gap-1"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg> Saved</span>}
+                                        <div style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            padding: '12px 18px', borderBottom: '1px solid var(--border)',
+                                            background: 'rgba(255,255,255,.02)',
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <span style={{
+                                                    width: 24, height: 24, borderRadius: '50%',
+                                                    background: answered ? 'var(--accent)' : 'rgba(255,255,255,.08)',
+                                                    color: answered ? '#fff' : 'var(--muted)',
+                                                    fontSize: 11, fontWeight: 700,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                }}>{gNum}</span>
+                                                <span style={{
+                                                    padding: '2px 9px', borderRadius: 20,
+                                                    fontSize: 10.5, fontWeight: 600,
+                                                    textTransform: 'uppercase', letterSpacing: '.06em',
+                                                    background: q.type === 'MCQ' ? 'rgba(99,102,241,.14)' : 'rgba(16,185,129,.1)',
+                                                    border: q.type === 'MCQ' ? '1px solid rgba(99,102,241,.3)' : '1px solid rgba(16,185,129,.25)',
+                                                    color: q.type === 'MCQ' ? 'var(--accent2)' : '#34d399',
+                                                }}>{q.type}</span>
                                             </div>
-                                            <span className="text-sm font-bold text-amber-700 bg-amber-100 px-3 py-1.5 rounded-lg border border-amber-200">
-                                                {q.marks} Mark{q.marks > 1 ? 's' : ''}
+                                            <span style={{ fontSize: 12.5, color: 'var(--gold2)', fontWeight: 500 }}>
+                                                {q.marks} mark{q.marks !== 1 ? 's' : ''}
                                             </span>
                                         </div>
 
-                                        <div className="prose prose-slate prose-lg max-w-none mb-8 font-medium text-slate-800">
-                                            <ReactMarkdown
-                                                remarkPlugins={[remarkMath]}
-                                                rehypePlugins={[rehypeKatex]}
-                                            >
-                                                {q.question}
-                                            </ReactMarkdown>
+                                        <div style={{ padding: '16px 18px', fontSize: 15, fontWeight: 500, lineHeight: 1.7, color: '#e2e8f0' }}>
+                                            <MD>{q.question}</MD>
                                         </div>
 
-                                        {/* Input Area */}
-                                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-inner">
+                                        <div style={{ padding: '0 18px 18px' }}>
                                             {q.type === 'MCQ' && q.options ? (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    {q.options.map((opt, i) => (
-                                                        <label key={i} className={`
-                                                            flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all
-                                                            ${answers[q.id] === opt ? 'border-violet-500 bg-violet-50 text-violet-900 shadow-sm' : 'border-slate-200 hover:border-violet-300 hover:bg-white'}
-                                                        `}>
-                                                            <input
-                                                                type="radio"
-                                                                name={q.id}
-                                                                value={opt}
-                                                                checked={answers[q.id] === opt}
-                                                                onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                                                                className="w-5 h-5 text-violet-600 border-slate-300 focus:ring-violet-500"
-                                                            />
-                                                            <span className={`ml-3 font-semibold ${answers[q.id] === opt ? 'text-violet-900' : 'text-slate-700'}`}>{opt}</span>
-                                                        </label>
-                                                    ))}
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                                    {q.options.map((opt, oi) => {
+                                                        const sel = answers[q.id] === opt;
+                                                        return (
+                                                            <label key={oi} style={{
+                                                                display: 'flex', alignItems: 'flex-start', gap: 11,
+                                                                padding: '11px 14px', borderRadius: 11,
+                                                                border: `1px solid ${sel ? 'rgba(99,102,241,.5)' : 'var(--border)'}`,
+                                                                background: sel ? 'rgba(99,102,241,.1)' : 'rgba(255,255,255,.02)',
+                                                                cursor: 'pointer', transition: 'all .18s',
+                                                            }}>
+                                                                <input
+                                                                    type="radio" name={q.id} value={opt} checked={sel}
+                                                                    onChange={e => handleAnswerChange(q.id, e.target.value)}
+                                                                    style={{ marginTop: 2, accentColor: 'var(--accent)', flexShrink: 0 }}
+                                                                />
+                                                                <span style={{ fontSize: 13.5, lineHeight: 1.55, color: sel ? '#c7d2fe' : '#94a3b8', fontWeight: sel ? 500 : 400 }}>
+                                                                    <MD>{opt}</MD>
+                                                                </span>
+                                                            </label>
+                                                        );
+                                                    })}
                                                 </div>
                                             ) : (
                                                 <textarea
-                                                    className={`w-full p-5 rounded-xl border-2 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 outline-none transition-all placeholder-slate-400 text-slate-700 min-h-[160px] text-lg leading-relaxed shadow-sm ${answers[q.id] && answers[q.id].trim() !== '' ? 'border-emerald-300 bg-white' : 'border-slate-200 bg-white'}`}
-                                                    placeholder="Type your detailed answer here..."
                                                     value={answers[q.id] || ''}
-                                                    onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                                                ></textarea>
+                                                    onChange={e => handleAnswerChange(q.id, e.target.value)}
+                                                    placeholder="Type your answer here…"
+                                                    rows={q.marks >= 4 ? 5 : 3}
+                                                    style={textareaBase}
+                                                    onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,.14)'; e.target.style.background = 'rgba(255,255,255,.08)'; }}
+                                                    onBlur={e => { e.target.style.borderColor = answered ? 'rgba(99,102,241,.4)' : 'var(--border)'; e.target.style.boxShadow = 'none'; e.target.style.background = 'rgba(255,255,255,.06)'; }}
+                                                />
                                             )}
                                         </div>
                                     </div>
                                 );
                             })}
                         </div>
-                    ))}
-                </div>
-
-                {/* 2. Sticky Sidebar (Navigator & Timer) */}
-                <div className="lg:col-span-4 sticky top-6 z-20 hidden lg:flex lg:flex-col lg:gap-6 max-h-[calc(100vh-3rem)] overflow-y-auto pb-6 pr-2 custom-scrollbar">
-                    {/* Timer Card */}
-                    <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 text-center relative overflow-hidden group">
-                        <div className={`absolute top-0 left-0 w-full h-1.5 ${timeLeft < 300 ? 'bg-red-500 animate-pulse' : 'bg-gradient-to-r from-violet-500 to-indigo-500'}`}></div>
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Time Remaining</h4>
-                        <div className={`text-5xl font-mono font-black tracking-tight ${timeLeft < 300 ? 'text-red-600' : 'text-slate-800'}`}>
-                            {formatTime(timeLeft)}
-                        </div>
                     </div>
-
-                    {/* Navigator Matrix */}
-                    <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-white/50">
-                        <div className="flex justify-between items-end mb-4">
-                            <h4 className="font-bold text-slate-800">Navigator</h4>
-                            <span className="text-sm font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-lg">
-                                {answeredCount} / {totalQuestions}
-                            </span>
-                        </div>
-                        
-                        {/* Progress Bar */}
-                        <div className="w-full bg-slate-100 rounded-full h-2.5 mb-6 overflow-hidden">
-                            <div className="bg-emerald-500 h-2.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${progressPercent}%` }}></div>
-                        </div>
-
-                        <div className="grid grid-cols-5 gap-2.5 mb-8">
-                            {(() => {
-                                let btnGlobalIdx = 1;
-                                return testData.sections.flatMap(s => 
-                                    s.questions.map(q => {
-                                        const currentNum = btnGlobalIdx++;
-                                        const isAns = answers[q.id] && answers[q.id].trim() !== '';
-                                        return (
-                                            <button
-                                                key={`nav-${q.id}`}
-                                                onClick={() => scrollToQuestion(q.id)}
-                                                title={`Jump to Question ${currentNum}`}
-                                                className={`
-                                                    w-full aspect-square rounded-xl font-bold text-sm flex items-center justify-center transition-all border-2
-                                                    ${isAns 
-                                                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' 
-                                                        : 'bg-white border-slate-200 text-slate-500 hover:border-violet-400 hover:text-violet-600'
-                                                    }
-                                                `}
-                                            >
-                                                {currentNum}
-                                            </button>
-                                        );
-                                    })
-                                );
-                            })()}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="space-y-3">
-                            <button
-                                onClick={handleModalSubmit}
-                                disabled={submitting}
-                                className="w-full py-4 text-center rounded-xl font-bold text-white bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed group relative overflow-hidden"
-                            >
-                                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-violet-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                <span className="relative">
-                                    {submitting ? 'Grading Test...' : 'Submit Test'}
-                                </span>
-                            </button>
-                            <button
-                                onClick={onBack}
-                                className="w-full py-3 text-center rounded-xl font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-200"
-                            >
-                                Cancel Practice
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile specific floating actions */}
-                <div className="lg:hidden fixed bottom-0 left-0 w-full p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)] z-40">
-                    <div className="flex gap-4">
-                        <button onClick={onBack} className="px-6 py-4 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleModalSubmit}
-                            disabled={submitting}
-                            className="flex-1 px-6 py-4 rounded-xl font-bold text-white bg-slate-900 shadow-lg transition-all"
-                        >
-                            {submitting ? 'Grading...' : `Submit (${answeredCount}/${totalQuestions})`}
-                        </button>
-                    </div>
-                </div>
+                ))}
             </div>
 
-            {/* Full-screen Grading Overlay */}
-            {submitting && !showConfirmModal && createPortal(
-                <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-white/95 backdrop-blur-md animate-fade-in" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-                    <div className="w-20 h-20 border-4 border-slate-100 border-t-violet-600 rounded-full animate-spin mb-8 shadow-xl shadow-violet-600/20"></div>
-                    <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-3">Grading Test...</h2>
-                    <p className="text-slate-500 font-medium text-lg animate-pulse max-w-sm text-center">
-                        Our AI examiner is thoroughly analyzing your responses. Just a few seconds!
-                    </p>
+            {/* ══ RIGHT: Sidebar (260px sticky) ══ */}
+            <div style={{
+                width: 260, flexShrink: 0,
+                position: 'sticky', top: 80,
+                display: 'flex', flexDirection: 'column', gap: 12,
+                maxHeight: 'calc(100vh - 100px)', overflowY: 'auto',
+            }}>
+
+                {/* Timer — right-aligned */}
+                <div style={{
+                    background: 'var(--surface)',
+                    border: `1px solid ${timerDanger ? 'rgba(239,68,68,.4)' : 'var(--border)'}`,
+                    borderRadius: 14, padding: '14px 18px',
+                }}>
+                    <div style={{ fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--muted)', marginBottom: 4, textAlign: 'right' }}>
+                        Time Remaining
+                    </div>
+                    <div style={{
+                        fontFamily: 'Syne,sans-serif', fontSize: 40, fontWeight: 800,
+                        color: timerColor, lineHeight: 1, textAlign: 'right', letterSpacing: '-0.02em',
+                        ...(timerDanger ? { animation: 'pulseDot 1s ease-in-out infinite' } : {}),
+                    }}>
+                        {formatTime(timeLeft)}
+                    </div>
+                </div>
+
+                {/* Progress */}
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>Progress</span>
+                        <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>{answeredCount}/{totalQ}</span>
+                    </div>
+                    <div className="prog-bar"><div className="prog-fill" style={{ width: `${progressPct}%` }} /></div>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>{totalQ - answeredCount} remaining</div>
+                </div>
+
+                {/* Navigator */}
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px' }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>Navigator</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 6 }}>
+                        {(() => {
+                            const btns = []; let n = 0;
+                            testData.sections.forEach(section => {
+                                section.questions.forEach(q => {
+                                    n++;
+                                    const done = !!answers[q.id]?.trim();
+                                    btns.push(
+                                        <button key={q.id} title={`Jump to Q${n}`} onClick={() => scrollToQuestion(q.id)} style={{
+                                            width: '100%', aspectRatio: '1', borderRadius: 8,
+                                            border: `1px solid ${done ? 'rgba(16,185,129,.45)' : 'var(--border)'}`,
+                                            background: done ? 'rgba(16,185,129,.15)' : 'rgba(255,255,255,.04)',
+                                            color: done ? '#10b981' : 'var(--muted)',
+                                            fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                                            transition: 'all .15s',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontFamily: 'DM Sans,sans-serif',
+                                        }}
+                                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent2)'; e.currentTarget.style.background = 'rgba(99,102,241,.18)'; e.currentTarget.style.color = 'var(--accent2)'; e.currentTarget.style.transform = 'scale(1.12)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.borderColor = done ? 'rgba(16,185,129,.45)' : 'var(--border)'; e.currentTarget.style.background = done ? 'rgba(16,185,129,.15)' : 'rgba(255,255,255,.04)'; e.currentTarget.style.color = done ? '#10b981' : 'var(--muted)'; e.currentTarget.style.transform = ''; }}
+                                        >{n}</button>
+                                    );
+                                });
+                            });
+                            return btns;
+                        })()}
+                    </div>
+                    <div style={{ display: 'flex', gap: 14, marginTop: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--muted)' }}>
+                            <span style={{ width: 8, height: 8, borderRadius: 2, background: 'rgba(16,185,129,.5)', display: 'inline-block' }} />Answered
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--muted)' }}>
+                            <span style={{ width: 8, height: 8, borderRadius: 2, background: 'rgba(255,255,255,.1)', display: 'inline-block' }} />Pending
+                        </div>
+                    </div>
+                </div>
+
+                <button onClick={() => setShowConfirmModal(true)} disabled={submitting} className="btn-generate">
+                    <div className="btn-shine" />
+                    {submitting ? 'Grading…' : `Submit (${answeredCount}/${totalQ})`}
+                </button>
+                <button onClick={onBack} className="btn-secondary" style={{ textAlign: 'center' }}>Cancel Test</button>
+            </div>
+
+            {/* ══ Confirm Modal ══ */}
+            {showConfirmModal && createPortal(
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(5,9,21,0.85)', backdropFilter: 'blur(8px)', padding: 20 }}>
+                    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: '32px 28px', maxWidth: 400, width: '100%', textAlign: 'center', animation: 'revealUp .35s cubic-bezier(.22,1,.36,1) both' }}>
+                        <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', fontSize: 22 }}>⚠</div>
+                        <h3 style={{ fontFamily: 'Syne,sans-serif', fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>Submit Test?</h3>
+                        {answeredCount < totalQ
+                            ? <p style={{ fontSize: 13.5, color: '#fca5a5', marginBottom: 24 }}><strong>{totalQ - answeredCount} unanswered</strong> questions will get 0 marks.</p>
+                            : <p style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 24 }}>All {totalQ} questions answered. Ready?</p>
+                        }
+                        <div style={{ display: 'flex', gap: 10 }}>
+                            <button onClick={() => setShowConfirmModal(false)} className="btn-secondary" style={{ flex: 1 }}>Keep going</button>
+                            <button onClick={executeSubmit} className="btn-generate" style={{ flex: 1 }}><div className="btn-shine" />Submit now</button>
+                        </div>
+                    </div>
                 </div>,
                 document.body
             )}
 
-            {/* Submission Confirmation Modal */}
-            {showConfirmModal && createPortal(
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fade-in" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-                    <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl relative overflow-hidden animate-slide-up border border-slate-100">
-                        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6 mx-auto text-red-500">
-                           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> 
-                        </div>
-                        <h3 className="text-2xl font-black text-slate-800 text-center mb-2">Submit Test?</h3>
-                        
-                        {answeredCount < totalQuestions ? (
-                            <p className="text-center text-red-600 font-medium mb-8">
-                                You have <span className="font-bold underline">{totalQuestions - answeredCount} unanswered</span> questions. Are you sure you want to finish early?
-                            </p>
-                        ) : (
-                            <p className="text-center text-slate-500 mb-8">
-                                You've answered everything! Ready to see your score?
-                            </p>
-                        )}
-                        
-                        <div className="flex gap-3">
-                            <button 
-                                onClick={() => setShowConfirmModal(false)}
-                                className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors"
-                            >
-                                Keep Reviewing
-                            </button>
-                            <button 
-                                onClick={executeSubmit}
-                                className="flex-1 py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95"
-                            >
-                                Yes, Submit
-                            </button>
-                        </div>
-                    </div>
+            {/* ══ Grading overlay ══ */}
+            {submitting && !showConfirmModal && createPortal(
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(5,9,21,0.92)', backdropFilter: 'blur(16px)' }}>
+                    <div style={{ width: 60, height: 60, borderRadius: '50%', border: '3px solid rgba(99,102,241,.2)', borderTopColor: 'var(--accent)', animation: 'spin .8s linear infinite', marginBottom: 24 }} />
+                    <h2 style={{ fontFamily: 'Syne,sans-serif', fontSize: 24, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Grading your test…</h2>
+                    <p style={{ fontSize: 14, color: 'var(--muted)' }}>AI examiner is reviewing your answers</p>
                 </div>,
                 document.body
             )}

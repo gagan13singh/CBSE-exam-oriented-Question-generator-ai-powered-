@@ -1,60 +1,73 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * src/components/StreamingText.jsx
+ * 
+ * FIXED: Typewriter plays ONCE on first mount when animate=true.
+ * Uses hasRun ref so it NEVER replays on re-renders or prop changes.
+ */
+import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
-/**
- * animate=true  → typewriter effect (only on fresh question generation)
- * animate=false → instant full render (when navigating Next/Previous)
- */
-const StreamingText = ({ text, speed = 10, className, animate = true }) => {
-    const [displayedText, setDisplayedText] = useState(animate ? '' : (text || ''));
-    const [isComplete, setIsComplete] = useState(!animate);
+const StreamingText = ({ text, speed = 14, className, animate = false }) => {
+    const [displayed, setDisplayed] = useState(animate ? '' : (text || ''));
+    const [complete, setComplete] = useState(!animate);
+    const hasRun = useRef(false);
+    const intervalRef = useRef(null);
 
     useEffect(() => {
-        if (!text) return;
-
-        // No animation — just show text instantly
+        // No animation — show full text immediately
         if (!animate) {
-            setDisplayedText(text);
-            setIsComplete(true);
+            setDisplayed(text || '');
+            setComplete(true);
             return;
         }
 
-        // Typewriter animation
-        setIsComplete(false);
-        setDisplayedText('');
-        let index = 0;
-        const intervalId = setInterval(() => {
-            setDisplayedText((prev) => prev + text.charAt(index));
-            index++;
-            if (index === text.length) {
-                clearInterval(intervalId);
-                setIsComplete(true);
+        // Already played once this mount — do nothing
+        if (hasRun.current) return;
+        hasRun.current = true;
+
+        if (!text) return;
+
+        setComplete(false);
+        setDisplayed('');
+        let i = 0;
+
+        intervalRef.current = setInterval(() => {
+            i++;
+            setDisplayed(text.slice(0, i));
+            if (i >= text.length) {
+                clearInterval(intervalRef.current);
+                setComplete(true);
             }
         }, speed);
 
-        return () => clearInterval(intervalId);
-    }, [text, speed, animate]);
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty deps = runs once on mount only
 
     return (
         <span className={className}>
             <ReactMarkdown
                 remarkPlugins={[remarkMath]}
                 rehypePlugins={[rehypeKatex]}
-                components={{
-                    p: ({ children }) => <span className="inline">{children}</span>
-                }}
+                components={{ p: ({ children }) => <span className="inline">{children}</span> }}
             >
-                {displayedText}
+                {displayed}
             </ReactMarkdown>
-            {!isComplete && (
-                <span className="animate-pulse inline-block w-1.5 h-4 ml-1 align-middle bg-violet-500 rounded-full" />
+            {!complete && (
+                <span style={{
+                    display: 'inline-block', width: 2, height: '1em',
+                    marginLeft: 3, verticalAlign: 'middle',
+                    background: 'var(--accent2, #818cf8)', borderRadius: 1,
+                    animation: 'pulseDot .7s ease-in-out infinite',
+                }} />
             )}
         </span>
     );
 };
 
 export default StreamingText;
-

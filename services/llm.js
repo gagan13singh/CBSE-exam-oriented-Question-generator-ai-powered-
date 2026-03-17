@@ -1,11 +1,7 @@
 /**
  * services/llm.js
  * Smart LLM Router: Groq (free cloud) → Ollama (local fallback)
- *
- * Groq Free Tier:
- *  - llama-3.3-70b-versatile: 6,000 req/day, 500K tokens/day
- *  - Response time: ~2-4 seconds (vs 30-60s on local Ollama CPU)
- *  - Cost: $0 — no credit card needed
+ * UPDATED: Added retry with exponential backoff for Groq rate limits
  */
 
 const Groq = require('groq-sdk');
@@ -13,7 +9,7 @@ const Groq = require('groq-sdk');
 const OLLAMA_API_URL = process.env.OLLAMA_URL || 'http://localhost:11434/api/generate';
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3';
-const USE_GROQ = process.env.USE_GROQ !== 'false'; // default: true
+const USE_GROQ = process.env.USE_GROQ !== 'false';
 
 let groqClient = null;
 
@@ -25,37 +21,51 @@ function getGroqClient() {
 }
 
 /**
- * Call Groq API (free, fast)
+ * Call Groq with automatic retry on rate limit (429)
+ * Retries: attempt 1 waits 1s, attempt 2 waits 2s, then gives up → Ollama
  */
-async function callGroq(prompt) {
+async function callGroqWithRetry(prompt, retries = 2) {
     const client = getGroqClient();
     if (!client) throw new Error('GROQ_API_KEY not configured');
 
-    const completion = await client.chat.completions.create({
-        model: GROQ_MODEL,
-        messages: [
-            {
-                role: 'system',
-                content: 'You are an expert CBSE exam paper setter. Always respond with valid JSON only. No markdown, no explanation. Just the JSON object.'
-            },
-            {
-                role: 'user',
-                content: prompt
-            }
-        ],
-        temperature: 0.7,
-        max_tokens: 4096,
-        response_format: { type: 'json_object' }
-    });
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            const completion = await client.chat.completions.create({
+                model: GROQ_MODEL,
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are an expert CBSE exam paper setter. Always respond with valid JSON only. No markdown, no explanation. Just the JSON object.',
+                    },
+                    {
+                        role: 'user',
+                        content: prompt,
+                    },
+                ],
+                temperature: 0.7,
+                max_tokens: 4096,
+                response_format: { type: 'json_object' },
+            });
 
-    const text = completion.choices[0]?.message?.content;
-    if (!text) throw new Error('Groq returned empty response');
+            const text = completion.choices[0]?.message?.content;
+            if (!text) throw new Error('Groq returned empty response');
+            return parseAndRepairJSON(text);
 
-    return parseAndRepairJSON(text);
+        } catch (err) {
+            const isRateLimit = err?.status === 429 || err?.message?.includes('rate limit');
+            const isLastTry = attempt === retries;
+
+            if (isLastTry || !isRateLimit) throw err;
+
+            const delay = 1000 * Math.pow(2, attempt); // 1000ms, 2000ms
+            console.warn(`[Groq] Rate limited. Retrying in ${delay}ms (attempt ${attempt + 1}/${retries})...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
 }
 
 /**
- * Call Ollama API (local fallback)
+ * Call Ollama (local fallback)
  */
 async function callOllama(prompt) {
     const response = await fetch(OLLAMA_API_URL, {
@@ -65,8 +75,8 @@ async function callOllama(prompt) {
             model: OLLAMA_MODEL,
             prompt: prompt,
             stream: false,
-            format: 'json'
-        })
+            format: 'json',
+        }),
     });
 
     if (!response.ok) {
@@ -78,24 +88,20 @@ async function callOllama(prompt) {
 }
 
 /**
- * Parse JSON with LaTeX backslash repair
+ * Parse JSON — repairs common LaTeX escape issues
  */
 function parseAndRepairJSON(text) {
     if (!text) throw new Error('Empty response from LLM');
 
-    // Strip markdown code fences if present
     let cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 
     try {
         return JSON.parse(cleaned);
     } catch (e) {
-        // Repair common LaTeX escape issues in JSON strings
+        // Fix unescaped LaTeX backslashes
         cleaned = cleaned
             .replace(/\\frac/g, '\\\\frac')
-            .replace(/\\boldsymbol/g, '\\\\boldsymbol')
-            .replace(/\\tau/g, '\\\\tau')
-            .replace(/\\rho/g, '\\\\rho')
-            .replace(/\\nu/g, '\\\\nu')
+            .replace(/\\sqrt/g, '\\\\sqrt')
             .replace(/\\theta/g, '\\\\theta')
             .replace(/\\alpha/g, '\\\\alpha')
             .replace(/\\beta/g, '\\\\beta')
@@ -108,12 +114,10 @@ function parseAndRepairJSON(text) {
             .replace(/\\mu/g, '\\\\mu')
             .replace(/\\epsilon/g, '\\\\epsilon')
             .replace(/\\phi/g, '\\\\phi')
-            .replace(/\\psi/g, '\\\\psi')
             .replace(/\\vec/g, '\\\\vec')
             .replace(/\\hat/g, '\\\\hat')
             .replace(/\\cdot/g, '\\\\cdot')
             .replace(/\\times/g, '\\\\times')
-            .replace(/\\sqrt/g, '\\\\sqrt')
             .replace(/\\int/g, '\\\\int')
             .replace(/\\sum/g, '\\\\sum')
             .replace(/\\lim/g, '\\\\lim')
@@ -123,12 +127,16 @@ function parseAndRepairJSON(text) {
             .replace(/\\cos/g, '\\\\cos')
             .replace(/\\tan/g, '\\\\tan')
             .replace(/\\log/g, '\\\\log')
-            .replace(/\\ln/g, '\\\\ln');
+            .replace(/\\ln/g, '\\\\ln')
+            .replace(/\\boldsymbol/g, '\\\\boldsymbol')
+            .replace(/\\rho/g, '\\\\rho')
+            .replace(/\\nu/g, '\\\\nu')
+            .replace(/\\tau/g, '\\\\tau');
 
         try {
             return JSON.parse(cleaned);
         } catch (e2) {
-            // Last resort: escape all unescaped backslashes
+            // Last resort
             cleaned = cleaned.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
             return JSON.parse(cleaned);
         }
@@ -136,14 +144,13 @@ function parseAndRepairJSON(text) {
 }
 
 /**
- * Main router: Groq → Ollama fallback
- * Returns { result, model, provider }
+ * Main router: Groq (with retry) → Ollama fallback
  */
 async function callLLM(prompt) {
     if (USE_GROQ && process.env.GROQ_API_KEY) {
         try {
             console.log(`--> 🚀 Calling Groq (${GROQ_MODEL})...`);
-            const result = await callGroq(prompt);
+            const result = await callGroqWithRetry(prompt);
             console.log('--> ✅ Groq responded successfully');
             return { result, model: GROQ_MODEL, provider: 'groq' };
         } catch (err) {
@@ -151,7 +158,6 @@ async function callLLM(prompt) {
         }
     }
 
-    // Ollama fallback
     console.log(`--> 🐢 Calling Ollama (${OLLAMA_MODEL})...`);
     const result = await callOllama(prompt);
     console.log('--> ✅ Ollama responded successfully');
@@ -164,23 +170,23 @@ async function callLLM(prompt) {
 async function checkHealth() {
     const health = {
         groq: { status: 'unconfigured', model: GROQ_MODEL },
-        ollama: { status: 'unknown', model: OLLAMA_MODEL }
+        ollama: { status: 'unknown', model: OLLAMA_MODEL },
     };
 
-    // Check Groq
     if (process.env.GROQ_API_KEY) {
         try {
             const client = getGroqClient();
-            await client.models.list(); // lightweight API call
+            await client.models.list();
             health.groq = { status: 'online', model: GROQ_MODEL };
         } catch (e) {
             health.groq = { status: 'error', error: e.message, model: GROQ_MODEL };
         }
     }
 
-    // Check Ollama
     try {
-        const resp = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(3000) });
+        const resp = await fetch('http://localhost:11434/api/tags', {
+            signal: AbortSignal.timeout(3000),
+        });
         if (resp.ok) {
             const data = await resp.json();
             const models = data.models?.map(m => m.name) || [];

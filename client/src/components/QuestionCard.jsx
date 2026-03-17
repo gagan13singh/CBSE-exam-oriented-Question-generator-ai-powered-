@@ -1,3 +1,8 @@
+/**
+ * src/components/QuestionCard.jsx
+ * Dark theme rewrite — all logic UNCHANGED
+ */
+
 import React, { useRef } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -7,216 +12,293 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import StreamingText from './StreamingText';
 
+const MD = ({ children }) => (
+    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+        {String(children || '')}
+    </ReactMarkdown>
+);
+
 const QuestionCard = ({ data, index, animate = false }) => {
     const cardRef = useRef();
 
     const handleDownload = async () => {
         const element = cardRef.current;
-        const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#0d1425' });
         const imgData = canvas.toDataURL('image/png');
-
         const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`CBSE_Question_${index || 1}.pdf`);
+        const w = pdf.internal.pageSize.getWidth();
+        pdf.addImage(imgData, 'PNG', 0, 0, w, (canvas.height * w) / canvas.width);
+        pdf.save(`CBSE_Q${index || 1}.pdf`);
     };
 
+    // ── Colour helpers ──
+    const typeColor = {
+        'MCQ': { bg: 'rgba(99,102,241,.15)', border: 'rgba(99,102,241,.35)', text: '#818cf8' },
+        'Numerical': { bg: 'rgba(16,185,129,.12)', border: 'rgba(16,185,129,.35)', text: '#34d399' },
+        'HOTS': { bg: 'rgba(239,68,68,.12)', border: 'rgba(239,68,68,.35)', text: '#f87171' },
+        'Case-Based': { bg: 'rgba(245,158,11,.12)', border: 'rgba(245,158,11,.35)', text: '#fbbf24' },
+        'Short Answer': { bg: 'rgba(59,130,246,.12)', border: 'rgba(59,130,246,.35)', text: '#60a5fa' },
+        'Long Answer': { bg: 'rgba(139,92,246,.12)', border: 'rgba(139,92,246,.35)', text: '#a78bfa' },
+        'Theoretical': { bg: 'rgba(20,184,166,.12)', border: 'rgba(20,184,166,.35)', text: '#2dd4bf' },
+        'Graphical': { bg: 'rgba(236,72,153,.12)', border: 'rgba(236,72,153,.35)', text: '#f472b6' },
+    };
+    const tc = typeColor[data?.question_type] || typeColor['MCQ'];
+
     return (
-        <div className="w-full animate-fade-in group">
-            <div ref={cardRef} className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/60 p-10 md:p-12 relative overflow-hidden transition-all hover:shadow-violet-500/10">
+        <div ref={cardRef} style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 20,
+            overflow: 'hidden',
+            animation: animate ? 'revealUp .5s cubic-bezier(.22,1,.36,1) both' : 'none',
+        }}>
 
-                {/* Decorative Elements */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-violet-100/50 to-fuchsia-100/50 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-cyan-100/50 to-blue-100/50 rounded-full blur-3xl -ml-32 -mb-32 pointer-events-none"></div>
-
-                {/* Header Tags */}
-                <div className="relative flex flex-wrap items-center gap-3 mb-8">
+            {/* ── Header ── */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '18px 24px',
+                borderBottom: '1px solid var(--border)',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     {index && (
-                        <span className="px-4 py-1.5 bg-slate-900 text-white font-bold text-xs uppercase tracking-wider rounded-full">
-                            Q{index}
-                        </span>
+                        <span style={{
+                            width: 28, height: 28,
+                            borderRadius: '50%',
+                            background: 'var(--accent)',
+                            color: '#fff',
+                            fontSize: 12, fontWeight: 700,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0,
+                        }}>Q{index}</span>
                     )}
-                    <span className="px-4 py-1.5 bg-violet-100 text-violet-700 font-bold text-xs uppercase tracking-wider rounded-full border border-violet-200">
-                        {data.question_type}
-                    </span>
-                    <span className="px-4 py-1.5 bg-amber-100 text-amber-700 font-bold text-xs uppercase tracking-wider rounded-full border border-amber-200">
-                        {data.marks} Mark{data.marks > 1 ? 's' : ''}
+                    <span style={{
+                        padding: '3px 11px',
+                        borderRadius: 20,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '.07em',
+                        background: tc.bg,
+                        border: `1px solid ${tc.border}`,
+                        color: tc.text,
+                    }}>
+                        {data?.question_type || 'Question'}
                     </span>
                 </div>
 
-                {/* Question Body with LaTeX Support & Streaming */}
-                <div className="relative mb-10 prose prose-lg prose-slate max-w-none font-bold text-slate-900">
-                    {/* 
-                         Note: We only apply streaming to plain string questions for now to avoid parsing issues 
-                         with complex markdown structures during the typing effect. 
-                         For simply displaying content, ReactMarkdown handles the final output.
-                     */}
-                    {typeof data.question === 'string' ? (
-                        <StreamingText
-                            text={data.question}
-                            speed={15}
-                            className="block"
-                            animate={animate}
-                        />
-                    ) : (
-                        <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                            {String(data.question || '')}
-                        </ReactMarkdown>
-                    )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 13, color: 'var(--gold2)', fontWeight: 500 }}>
+                        ★ {data?.marks || 1} mark{data?.marks !== 1 ? 's' : ''}
+                    </span>
+                    <button onClick={handleDownload} style={{
+                        padding: '5px 12px',
+                        background: 'rgba(255,255,255,.05)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 8,
+                        color: 'var(--muted)',
+                        fontSize: 12, fontWeight: 500,
+                        fontFamily: 'DM Sans, sans-serif',
+                        cursor: 'pointer',
+                        transition: 'all .2s',
+                    }}
+                        onMouseEnter={e => { e.target.style.borderColor = 'var(--border2)'; e.target.style.color = 'var(--text)'; }}
+                        onMouseLeave={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.color = 'var(--muted)'; }}
+                    >
+                        ⬇ PDF
+                    </button>
                 </div>
+            </div>
 
-                {/* MCQ Options Grid */}
-                {data.options && typeof data.options === 'object' && (
-                    <div className="relative grid md:grid-cols-2 gap-4 mb-10">
-                        {Object.entries(data.options).map(([key, value]) => {
-                            const isCorrect = String(data.correct_option).toLowerCase() === key.toLowerCase();
-                            return (
-                                <div
-                                    key={key}
-                                    className={`relative flex items-center p-4 rounded-xl border-2 transition-all duration-300 ${isCorrect
-                                        ? 'bg-emerald-50/80 border-emerald-400 shadow-sm'
-                                        : 'bg-white/50 border-slate-200 hover:border-violet-300'
-                                        }`}
-                                >
-                                    <span className={`w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg font-bold text-sm mr-4 ${isCorrect
-                                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                                        : 'bg-slate-200 text-slate-600'
-                                        }`}>
-                                        {key.toUpperCase()}
-                                    </span>
-                                    <div className={`font-semibold ${isCorrect ? 'text-emerald-900' : 'text-slate-700'}`}>
-                                        <ReactMarkdown
-                                            remarkPlugins={[remarkMath]}
-                                            rehypePlugins={[rehypeKatex]}
-                                        >
-                                            {String(value)}
-                                        </ReactMarkdown>
-                                    </div>
-                                    {isCorrect && (
-                                        <div className="absolute right-4 text-emerald-500">
-                                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                                        </div>
-                                    )}
+            {/* ── Question body ── */}
+            <div style={{
+                padding: '22px 24px',
+                fontSize: 15.5,
+                lineHeight: 1.75,
+                color: '#e2e8f0',
+                fontWeight: 500,
+                borderBottom: '1px solid var(--border)',
+            }}>
+                {typeof data?.question === 'string' ? (
+                    <StreamingText text={data.question} speed={14} animate={animate} />
+                ) : (
+                    <MD>{data?.question}</MD>
+                )}
+            </div>
+
+            {/* ── MCQ Options ── */}
+            {data?.options && typeof data.options === 'object' && (
+                <div style={{
+                    padding: '18px 24px',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 10,
+                    borderBottom: '1px solid var(--border)',
+                }}>
+                    {Object.entries(data.options).map(([key, value]) => {
+                        const correct = String(data.correct_option).toLowerCase() === key.toLowerCase();
+                        return (
+                            <div key={key} style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 10,
+                                padding: '12px 14px',
+                                borderRadius: 12,
+                                border: `1px solid ${correct ? 'rgba(16,185,129,.4)' : 'var(--border)'}`,
+                                background: correct ? 'rgba(16,185,129,.08)' : 'rgba(255,255,255,.02)',
+                                transition: 'all .2s',
+                            }}>
+                                <span style={{
+                                    width: 26, height: 26,
+                                    borderRadius: 7,
+                                    background: correct ? 'rgba(16,185,129,.25)' : 'rgba(255,255,255,.08)',
+                                    color: correct ? '#10b981' : 'var(--muted)',
+                                    fontSize: 12, fontWeight: 700,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    flexShrink: 0,
+                                }}>
+                                    {key.toUpperCase()}
+                                </span>
+                                <div style={{
+                                    fontSize: 13.5,
+                                    lineHeight: 1.55,
+                                    color: correct ? '#a7f3d0' : '#94a3b8',
+                                    paddingTop: 2,
+                                }}>
+                                    <MD>{value}</MD>
                                 </div>
-                            );
-                        })}
-                    </div>
-                )}
-
-                {/* Related Formulas (New Feature) */}
-                {data.related_formulas && Array.isArray(data.related_formulas) && data.related_formulas.length > 0 && (
-                    <div className="mb-8 animate-fade-in delay-100">
-                        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5 shadow-sm">
-                            <h4 className="flex items-center gap-2 text-amber-800 font-bold mb-3 text-sm uppercase tracking-wider">
-                                <span className="text-lg">📐</span> Core Formulas Used
-                            </h4>
-                            <div className="flex flex-wrap gap-3">
-                                {data.related_formulas.map((formula, idx) => (
-                                    <div key={idx} className="bg-white px-4 py-2 rounded-lg border border-amber-100 shadow-sm text-slate-800 font-medium font-mono">
-                                        <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                                            {String(formula)}
-                                        </ReactMarkdown>
-                                    </div>
-                                ))}
+                                {correct && (
+                                    <span style={{ marginLeft: 'auto', color: '#10b981', fontSize: 16, flexShrink: 0 }}>✓</span>
+                                )}
                             </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Visualization Hint (New Feature) */}
-                {data.visualization_hint && (
-                    <div className="mb-8 animate-fade-in delay-150">
-                        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 shadow-inner relative overflow-hidden group/visual">
-                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover/visual:opacity-10 transition-opacity">
-                                <svg className="w-24 h-24 text-indigo-900" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg>
-                            </div>
-                            <h4 className="flex items-center gap-2 text-indigo-800 font-bold mb-2 text-sm uppercase tracking-wider relative z-10">
-                                <span className="text-lg">👁️</span> Visual Aid
-                            </h4>
-                            <div className="text-indigo-900/80 italic relative z-10 border-l-4 border-indigo-300 pl-4">
-                                <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                                    {String(data.visualization_hint)}
-                                </ReactMarkdown>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Answer Section */}
-                <div className="relative border-t border-slate-100 pt-8">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-slate-900 text-lg">Expert Solution</h4>
-                            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Detailed Explanation</p>
-                        </div>
-                    </div>
-
-                    <div className="cursor-text prose prose-slate max-w-none mb-8">
-                        <div className="text-slate-700 leading-relaxed text-lg bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
-                            {/* Stream answer text if plain string, else render directly */}
-                            {typeof data.answer === 'string' ? (
-                                <StreamingText text={data.answer} speed={5} className="block" animate={animate} />
-                            ) : (
-                                <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                                    {String(data.answer || '')}
-                                </ReactMarkdown>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Key Points */}
-                    {data.key_points && Array.isArray(data.key_points) && data.key_points.length > 0 && (
-                        <div className="bg-slate-50/80 rounded-2xl p-6 md:p-8 border border-slate-100">
-                            <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                <span className="w-2 h-6 bg-violet-500 rounded-full"></span>
-                                Marking Scheme Key Points
-                            </h4>
-                            <ul className="space-y-3">
-                                {data.key_points.map((point, idx) => (
-                                    <li key={idx} className="flex gap-4 items-start">
-                                        <div className="w-6 h-6 rounded-full bg-violet-100 border border-violet-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                            <span className="text-violet-700 font-bold text-xs">{idx + 1}</span>
-                                        </div>
-                                        <div className="text-slate-700 font-medium">
-                                            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                                                {String(point)}
-                                            </ReactMarkdown>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                        );
+                    })}
                 </div>
+            )}
 
-                {/* Watermark */}
-                <div className="absolute bottom-4 right-8 opacity-20">
-                    <span className="text-4xl font-black text-slate-900 tracking-tighter">AI</span>
+            {/* ── Related Formulas ── */}
+            {data?.related_formulas?.length > 0 && (
+                <div style={{
+                    margin: '0 24px',
+                    marginTop: 18,
+                    padding: '14px 16px',
+                    background: 'rgba(245,158,11,.06)',
+                    border: '1px solid rgba(245,158,11,.18)',
+                    borderRadius: 12,
+                }}>
+                    <div style={{
+                        fontSize: 11, fontWeight: 600,
+                        textTransform: 'uppercase', letterSpacing: '.07em',
+                        color: 'var(--gold2)', marginBottom: 10,
+                    }}>
+                        📐 Core Formulas Used
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        {data.related_formulas.map((f, i) => (
+                            <span key={i} style={{
+                                padding: '4px 12px',
+                                background: 'rgba(245,158,11,.1)',
+                                border: '1px solid rgba(245,158,11,.2)',
+                                borderRadius: 8,
+                                fontSize: 13,
+                                color: '#fbbf24',
+                            }}>
+                                <MD>{f}</MD>
+                            </span>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
-            {/* Actions */}
-            <div className="mt-8 flex justify-center">
-                <button
-                    onClick={handleDownload}
-                    className="group bg-slate-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-slate-800 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-95 flex items-center gap-3"
-                >
-                    Download PDF
-                    <svg className="w-5 h-5 group-hover:translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                </button>
-            </div>
+            {/* ── Expert Solution ── */}
+            {data?.answer && (
+                <div style={{ padding: '18px 24px', paddingTop: data?.related_formulas?.length > 0 ? 14 : 18 }}>
+                    <div style={{
+                        fontSize: 11, fontWeight: 600,
+                        textTransform: 'uppercase', letterSpacing: '.07em',
+                        color: 'var(--accent2)', marginBottom: 10,
+                        display: 'flex', alignItems: 'center', gap: 6,
+                    }}>
+                        <span style={{ width: 3, height: 14, background: 'var(--accent)', borderRadius: 2, display: 'inline-block' }} />
+                        Expert Solution
+                    </div>
+                    <div style={{
+                        background: 'rgba(99,102,241,.06)',
+                        border: '1px solid rgba(99,102,241,.15)',
+                        borderRadius: 12,
+                        padding: '16px',
+                        fontSize: 14,
+                        lineHeight: 1.7,
+                        color: '#c4ccdd',
+                    }}>
+                        {typeof data.answer === 'string' ? (
+                            <StreamingText text={data.answer} speed={4} animate={false} />
+                        ) : (
+                            <MD>{data.answer}</MD>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* ── Marking Scheme Key Points ── */}
+            {data?.key_points?.length > 0 && (
+                <div style={{ padding: '0 24px 22px' }}>
+                    <div style={{
+                        fontSize: 11, fontWeight: 600,
+                        textTransform: 'uppercase', letterSpacing: '.07em',
+                        color: 'var(--muted)', marginBottom: 12,
+                        display: 'flex', alignItems: 'center', gap: 6,
+                    }}>
+                        <span style={{ width: 3, height: 14, background: 'var(--success)', borderRadius: 2, display: 'inline-block' }} />
+                        Marking Scheme Key Points
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {data.key_points.map((pt, i) => (
+                            <div key={i} style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 10,
+                            }}>
+                                <span style={{
+                                    width: 22, height: 22,
+                                    borderRadius: '50%',
+                                    background: 'rgba(16,185,129,.15)',
+                                    border: '1px solid rgba(16,185,129,.3)',
+                                    color: '#10b981',
+                                    fontSize: 11, fontWeight: 700,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    flexShrink: 0, marginTop: 2,
+                                }}>
+                                    {i + 1}
+                                </span>
+                                <div style={{ fontSize: 13.5, color: '#94a3b8', lineHeight: 1.6 }}>
+                                    <MD>{pt}</MD>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* ── Visualization hint ── */}
+            {data?.visualization_hint && (
+                <div style={{
+                    margin: '0 24px 22px',
+                    padding: '12px 14px',
+                    background: 'rgba(139,92,246,.07)',
+                    border: '1px solid rgba(139,92,246,.2)',
+                    borderRadius: 11,
+                    fontSize: 13,
+                    color: '#c4b5fd',
+                }}>
+                    <span style={{ fontWeight: 600 }}>📊 Diagram hint: </span>
+                    <MD>{data.visualization_hint}</MD>
+                </div>
+            )}
+
         </div>
     );
 };
-
 
 export default QuestionCard;

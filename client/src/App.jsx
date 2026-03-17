@@ -1,35 +1,48 @@
+/**
+ * client/src/App.jsx  — COMPLETE REWRITE
+ * Fixes:
+ *  1. animateQ1 — typewriter plays once, never repeats
+ *  2. addSession() called after grading so Dashboard shows real data
+ *  3. topic optional — passed as empty string when not selected
+ *  4. Dark cosmic theme (matches index.css vars)
+ */
 import React, { useState } from 'react';
 import QuestionForm from './components/QuestionForm';
 import QuestionCard from './components/QuestionCard';
 import LoadingFact from './components/LoadingFact';
-import Footer from './components/Footer';
 import PracticeConfig from './components/PracticeConfig';
 import PracticeTestInterface from './components/PracticeTestInterface';
 import PracticeResult from './components/PracticeResult';
 import ModelBadge from './components/ModelBadge';
+import Dashboard from './pages/Dashboard';
+import Analytics from './pages/Analytics';
 import { useHealth } from './hooks/useHealth';
 import { ENDPOINTS } from './config';
+import useProgressStore from './store/useProgressStore';
 
 function App() {
   const health = useHealth();
+  const addSession = useProgressStore(s => s.addSession);
 
-  // Mode State: 'generator' | 'practice'
+  // ── Mode ─────────────────────────────────────────────────────────────
   const [appMode, setAppMode] = useState('generator');
 
-  // Generator State
+  // ── Generator ─────────────────────────────────────────────────────────
   const [questionData, setQuestionData] = useState(null);
   const [questionMeta, setQuestionMeta] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loadingContext, setLoadingContext] = useState({ class: null, subject: null });
+  const [animateQ1, setAnimateQ1] = useState(false);
 
-  // Practice State: 'config' | 'test' | 'result'
+  // ── Practice ──────────────────────────────────────────────────────────
   const [practiceState, setPracticeState] = useState('config');
   const [practiceData, setPracticeData] = useState(null);
   const [practiceResult, setPracticeResult] = useState(null);
+  const [lastPracticeConfig, setLastPracticeConfig] = useState(null);
 
-  // --- QUESTION GENERATOR HANDLERS ---
+  // ── Handlers ──────────────────────────────────────────────────────────
   const generateQuestion = async (formData) => {
     setLoading(true);
     setLoadingContext({ class: formData.class, subject: formData.subject });
@@ -37,22 +50,23 @@ function App() {
     setQuestionData(null);
     setQuestionMeta(null);
     setCurrentQuestionIndex(0);
+    setAnimateQ1(false);
 
     try {
-      const response = await fetch(ENDPOINTS.generateQuestions, {
+      const res = await fetch(ENDPOINTS.generateQuestions, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          // ensure topic is at least an empty string, never undefined
+          topic: formData.topic || '',
+        }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to generate questions');
-      }
-
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to generate questions');
       setQuestionData(data.data);
       setQuestionMeta(data.meta);
+      setAnimateQ1(true);   // ← enables typewriter for Q1 only
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -61,25 +75,21 @@ function App() {
     }
   };
 
-  // --- PRACTICE TEST HANDLERS ---
   const generatePracticePaper = async (configData) => {
     setLoading(true);
     setLoadingContext({ class: configData.class, subject: configData.subject });
     setError('');
-
+    setLastPracticeConfig(configData);  // save for addSession later
     try {
-      const response = await fetch(ENDPOINTS.generatePaper, {
+      const res = await fetch(ENDPOINTS.generatePaper, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(configData)
+        body: JSON.stringify(configData),
       });
-
-      const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.error || 'Failed to generate paper');
-
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to generate paper');
       setPracticeData(data.data);
       setPracticeState('test');
-
     } catch (err) {
       setError(err.message || 'Failed to create practice test.');
     } finally {
@@ -91,18 +101,30 @@ function App() {
   const submitPracticePaper = async (submissions) => {
     setLoading(true);
     try {
-      const response = await fetch(ENDPOINTS.gradePaper, {
+      const res = await fetch(ENDPOINTS.gradePaper, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ submissions })
+        body: JSON.stringify({ submissions }),
       });
-
-      const data = await response.json();
-      if (!response.ok || !data.success) throw new Error(data.error || 'Failed to grade paper');
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to grade paper');
 
       setPracticeResult(data.data);
       setPracticeState('result');
 
+      // ── Wire addSession so Dashboard shows real data ──
+      if (data.data?.results && lastPracticeConfig) {
+        const results = data.data.results;
+        const correct = results.filter(r => r.marks_awarded === r.max_marks).length;
+        addSession({
+          subject: lastPracticeConfig.subject || 'Unknown',
+          chapter: Array.isArray(lastPracticeConfig.chapters)
+            ? lastPracticeConfig.chapters[0]
+            : lastPracticeConfig.chapters || 'Mixed',
+          correct,
+          total: results.length,
+        });
+      }
     } catch (err) {
       setError(err.message || 'Error submitting test.');
     } finally {
@@ -117,215 +139,289 @@ function App() {
     setError('');
   };
 
+  // Navigate between questions — turns off typewriter
+  const goTo = (idx) => {
+    setAnimateQ1(false);
+    setCurrentQuestionIndex(idx);
+  };
+
+  // ── Derived ───────────────────────────────────────────────────────────
+  const questions = Array.isArray(questionData)
+    ? questionData
+    : questionData ? [questionData] : [];
+  const currentQ = questions[currentQuestionIndex];
+
+  const navItems = [
+    { mode: 'generator', label: '⚡ Generator' },
+    { mode: 'practice', label: '📝 Practice' },
+    { mode: 'dashboard', label: '📊 Dashboard' },
+    { mode: 'analytics', label: '📈 Analytics' },
+  ];
+
+  // ── Inline styles ─────────────────────────────────────────────────────
+  const S = {
+    nav: {
+      position: 'sticky', top: 0, zIndex: 100,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 2rem', height: 64,
+      background: 'rgba(5,9,21,0.85)',
+      backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+      borderBottom: '1px solid var(--border, rgba(99,102,241,0.15))',
+    },
+    logo: {
+      fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 800,
+      background: 'linear-gradient(135deg,#818cf8,#fbbf24)',
+      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+    },
+    navPills: {
+      display: 'flex',
+      background: 'var(--surface, #0d1425)',
+      border: '1px solid var(--border, rgba(99,102,241,0.15))',
+      borderRadius: 12, padding: 4, gap: 2,
+    },
+    main: {
+      maxWidth: appMode === 'dashboard' || appMode === 'analytics' ? 960 : 1080,
+      margin: '0 auto',
+      padding: appMode === 'dashboard' || appMode === 'analytics' ? '28px 2rem 80px' : '0 2rem 80px',
+      width: '100%',
+    },
+  };
+
   return (
-    <div className="relative min-h-screen selection:bg-purple-500 selection:text-white flex flex-col">
+    <div className="app-wrapper">
 
-      {/* Animated Background Blobs */}
-      <div className="absolute top-0 left-0 w-full h-full -z-10 bg-slate-50">
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
+      {/* ── NAV ── */}
+      <nav style={S.nav}>
+        <span style={S.logo}>Vidyastra</span>
 
-      <div className="container mx-auto px-4 py-8 md:py-16 relative flex-grow">
+        <div style={S.navPills}>
+          {navItems.map(({ mode, label }) => (
+            <button key={mode} onClick={() => setAppMode(mode)} style={{
+              padding: '7px 18px', borderRadius: 9, border: 'none', cursor: 'pointer',
+              fontSize: 13.5, fontWeight: 500, fontFamily: 'DM Sans, sans-serif',
+              background: appMode === mode ? 'var(--accent, #6366f1)' : 'transparent',
+              color: appMode === mode ? '#fff' : 'var(--muted, #64748b)',
+              boxShadow: appMode === mode ? '0 4px 16px rgba(99,102,241,0.35)' : 'none',
+              transition: 'all .2s',
+            }}>{label}</button>
+          ))}
+        </div>
 
-        {/* Modern Header */}
-        <header className="mb-12 text-center animate-fade-in relative z-10">
-          <div className="inline-block mb-4 px-6 py-2 rounded-full border border-slate-200 bg-white/50 backdrop-blur-sm shadow-sm">
-            <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent font-bold tracking-wide uppercase text-sm">
-              ✨ Next-Gen Exam Prep
-            </span>
+        <ModelBadge health={health} />
+      </nav>
+
+      {/* ── HERO (generator + practice only) ── */}
+      {appMode !== 'dashboard' && appMode !== 'analytics' && (
+        <div style={{ textAlign: 'center', padding: '52px 2rem 36px', maxWidth: 720, margin: '0 auto' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '5px 14px', borderRadius: 24, marginBottom: 20,
+            background: 'rgba(99,102,241,0.08)',
+            border: '1px solid rgba(99,102,241,0.25)',
+            fontSize: 12, fontWeight: 500, color: 'var(--accent2, #818cf8)',
+          }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24', display: 'inline-block' }} />
+            CBSE Class 9–12 · AI-Powered · NCERT Aligned
           </div>
-
-          {/* Model Badge */}
-          <div className="flex justify-center mb-3">
-            <ModelBadge health={health} />
-          </div>
-          <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight text-slate-900 leading-tight">
-            Create. Practice. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-600">
-              Excel.
-            </span>
+          <h1 style={{
+            fontFamily: 'Syne, sans-serif',
+            fontSize: 'clamp(32px,5vw,56px)',
+            fontWeight: 800, lineHeight: 1.08,
+            letterSpacing: '-0.04em', marginBottom: 14,
+            color: 'var(--text, #e2e8f0)',
+          }}>
+            Master every chapter.<br />
+            <span style={{
+              background: 'linear-gradient(135deg,#6366f1 0%,#a78bfa 50%,#fbbf24 100%)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            }}>Ace every exam.</span>
           </h1>
+          <p style={{ fontSize: 15, color: 'var(--muted, #64748b)' }}>
+            Questions generated from NCERT textbooks by Groq AI.
+          </p>
+        </div>
+      )}
 
-          {/* Mode Switcher */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-white/50 backdrop-blur-md p-1 rounded-2xl border border-slate-200 shadow-sm inline-flex">
-              <button
-                onClick={() => setAppMode('generator')}
-                className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${appMode === 'generator' ? 'bg-white shadow text-violet-600' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Question Generator
-              </button>
-              <button
-                onClick={() => setAppMode('practice')}
-                className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${appMode === 'practice' ? 'bg-white shadow text-fuchsia-600' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Practice Test
-              </button>
+      {/* ── MAIN ── */}
+      <main style={S.main}>
+
+        {/* Error banner */}
+        {error && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 12,
+            background: 'rgba(239,68,68,0.08)',
+            border: '1px solid rgba(239,68,68,0.25)',
+            borderRadius: 12, padding: '13px 16px', marginBottom: 24,
+          }}>
+            <span style={{ color: '#ef4444', fontSize: 17 }}>⚠</span>
+            <p style={{ flex: 1, fontSize: 13.5, color: '#fca5a5', margin: 0 }}>{error}</p>
+            <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: 'var(--muted,#64748b)', cursor: 'pointer', fontSize: 18 }}>✕</button>
+          </div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%',
+              margin: '0 auto 20px',
+              border: '2px solid rgba(99,102,241,0.15)',
+              borderTopColor: 'var(--accent, #6366f1)',
+              animation: 'spin .8s linear infinite',
+            }} />
+            <p style={{ color: 'var(--muted, #64748b)', fontSize: 14.5 }}>
+              {appMode === 'practice' && practiceState === 'test'
+                ? 'Grading your answers…'
+                : 'AI is generating questions…'}
+            </p>
+            <div style={{ marginTop: 24 }}>
+              <LoadingFact context={loadingContext} />
             </div>
           </div>
-        </header>
+        )}
 
-        {/* MAIN CONTENT AREA */}
-        <main className="max-w-6xl mx-auto">
+        {/* ── GENERATOR ── */}
+        {!loading && appMode === 'generator' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: 24, alignItems: 'start' }}>
 
-          {/* ERROR DISPLAY */}
-          {error && (
-            <div className="max-w-2xl mx-auto mb-8 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm animate-fade-in flex items-start gap-3">
-              <svg className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <div className="flex-1">
-                <h3 className="text-sm font-bold text-red-800">Could not generate questions</h3>
-                <p className="text-sm text-red-700 mt-0.5">{error}</p>
-                <button
-                  onClick={() => setError('')}
-                  className="text-xs text-red-500 underline mt-1 hover:text-red-700"
-                >Dismiss</button>
-              </div>
-            </div>
-          )}
-
-          {/* LOADING STATE - SHARED */}
-          {loading && (
-            <div className="text-center py-20 animate-fade-in">
-              <div className="relative w-24 h-24 mx-auto mb-8">
-                <div className="absolute top-0 left-0 w-full h-full border-4 border-violet-100 rounded-full"></div>
-                <div className="absolute top-0 left-0 w-full h-full border-4 border-violet-600 rounded-full border-t-transparent animate-spin"></div>
-              </div>
-              <h3 className="text-2xl font-bold text-slate-800 animate-pulse">
-                {appMode === 'practice' && practiceState === 'test' ? 'Grading your answers...' : 'AI is working magic...'}
-              </h3>
-              <p className="text-slate-500 mt-2">
-                {appMode === 'practice'
-                  ? (practiceState === 'test' ? 'Evaluating concepts & key points 🧠' : 'Constructing a balanced paper 📝')
-                  : 'Checking topic validity & generating questions 🤖'}
-              </p>
-              <div className="mt-8"><LoadingFact context={loadingContext} /></div>
-            </div>
-          )}
-
-          {/* CONTENT: GENERATOR MODE */}
-          {!loading && appMode === 'generator' && (
-            <div className="grid lg:grid-cols-12 gap-12 items-start animate-slide-up">
-              <div className="lg:col-span-5 w-full sticky top-6 z-20">
+            {/* Form */}
+            <div style={{ position: 'sticky', top: 80 }}>
+              <div className="p-card" style={{ padding: 28 }}>
+                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 4, color: 'var(--text,#e2e8f0)' }}>
+                  Configure question
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--muted,#64748b)', marginBottom: 22 }}>
+                  Select subject and topic
+                </div>
                 <QuestionForm onSubmit={generateQuestion} isLoading={loading} />
               </div>
-              <div className="lg:col-span-7 w-full">
-                {/* Empty State */}
-                {!questionData && !error && (
-                  <div className="relative group p-12 rounded-[2rem] border-2 border-dashed border-slate-300 bg-white/30 backdrop-blur-sm text-center transition-all hover:border-violet-300">
-                    <div className="relative z-10">
-                      <div className="w-24 h-24 bg-white rounded-full shadow-lg mx-auto mb-6 flex items-center justify-center text-4xl transform group-hover:scale-110 transition-transform duration-300">🚀</div>
-                      <h3 className="text-2xl font-bold text-slate-800 mb-2">Ready for Lift Off?</h3>
-                      <p className="text-slate-500">Configure your parameters on the left and hit generate.</p>
-                    </div>
+            </div>
+
+            {/* Results */}
+            <div>
+              {!questionData && !error && (
+                <div style={{
+                  border: '1.5px dashed rgba(99,102,241,0.2)',
+                  borderRadius: 20, padding: '60px 40px', textAlign: 'center',
+                }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>🚀</div>
+                  <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 700, marginBottom: 8, color: 'var(--text,#e2e8f0)' }}>
+                    Ready when you are
                   </div>
-                )}
-                {/* Questions Display with Pagination */}
-                {questionData && (
-                  <div className="pb-10">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-2xl font-bold text-slate-800">Generated Questions</h2>
-                      <div className="flex items-center gap-3">
-                        {questionMeta && (
-                          <span className="text-xs text-slate-400 font-medium">
-                            {questionMeta.provider === 'groq' ? '⚡' : '🐢'} via {questionMeta.model} · {questionMeta.rag_source}
-                          </span>
-                        )}
-                        <span className="px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-sm font-bold">
-                          {currentQuestionIndex + 1} / {Array.isArray(questionData) ? questionData.length : 1}
-                        </span>
-                      </div>
+                  <div style={{ fontSize: 14, color: 'var(--muted,#64748b)' }}>
+                    Configure parameters on the left and hit Generate.
+                  </div>
+                </div>
+              )}
+
+              {questionData && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text,#e2e8f0)' }}>
+                      Generated Questions
                     </div>
-
-                    {/* Single Question Card */}
-                    <div className="relative min-h-[400px]">
-                      {(() => {
-                        const questions = Array.isArray(questionData) ? questionData : [questionData];
-                        const currentQuestion = questions[currentQuestionIndex];
-                        return (
-                          <div className="animate-fade-in">
-                            <QuestionCard
-                              key={currentQuestionIndex} // Key forces re-render for animation/streaming
-                              data={currentQuestion}
-                              index={currentQuestionIndex + 1}
-                              animate={currentQuestionIndex === 0}
-                            />
-                          </div>
-                        );
-                      })()}
-                    </div>
-
-                    {/* Navigation Controls */}
-                    {(Array.isArray(questionData) && questionData.length > 1) && (
-                      <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-200">
-                        <button
-                          onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
-                          disabled={currentQuestionIndex === 0}
-                          className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
-                          Previous
-                        </button>
-
-                        <div className="flex gap-2">
-                          {questionData.map((_, idx) => (
-                            <div
-                              key={idx}
-                              className={`w-2.5 h-2.5 rounded-full transition-all ${idx === currentQuestionIndex ? 'bg-violet-600 scale-125' : 'bg-slate-300'}`}
-                            />
-                          ))}
-                        </div>
-
-                        <button
-                          onClick={() => setCurrentQuestionIndex(prev => Math.min(questionData.length - 1, prev + 1))}
-                          disabled={currentQuestionIndex === questionData.length - 1}
-                          className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-slate-900 text-white hover:bg-slate-800 hover:shadow-lg disabled:bg-slate-300 disabled:shadow-none"
-                        >
-                          Next
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                        </button>
-                      </div>
+                    {questionMeta && (
+                      <span style={{
+                        padding: '3px 11px', borderRadius: 20, fontSize: 11.5, fontWeight: 500,
+                        background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)',
+                        color: 'var(--accent2,#818cf8)',
+                      }}>
+                        {currentQuestionIndex + 1}/{questions.length} · {questionMeta.provider === 'groq' ? '⚡' : '🐢'} {questionMeta.model}
+                      </span>
                     )}
                   </div>
-                )}
+
+                  {currentQ && (
+                    <QuestionCard
+                      key={`${questionMeta?.generated_at}-${currentQuestionIndex}`}
+                      data={currentQ}
+                      index={currentQuestionIndex + 1}
+                      animate={animateQ1 && currentQuestionIndex === 0}
+                    />
+                  )}
+
+                  {questions.length > 1 && (
+                    <div style={{
+                      display: 'flex', alignItems: 'center',
+                      justifyContent: 'space-between', marginTop: 20,
+                    }}>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => goTo(Math.max(0, currentQuestionIndex - 1))}
+                        disabled={currentQuestionIndex === 0}
+                      >← Prev</button>
+
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        {questions.map((_, i) => (
+                          <div
+                            key={i}
+                            className={`page-dot${i === currentQuestionIndex ? ' active' : ''}`}
+                            onClick={() => goTo(i)}
+                          />
+                        ))}
+                      </div>
+
+                      <button
+                        className="btn-secondary"
+                        onClick={() => goTo(Math.min(questions.length - 1, currentQuestionIndex + 1))}
+                        disabled={currentQuestionIndex === questions.length - 1}
+                      >Next →</button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── PRACTICE ── */}
+        {!loading && appMode === 'practice' && (
+          <div style={{ maxWidth: practiceState === 'test' ? '100%' : 680, margin: '0 auto' }}>
+            {practiceState === 'config' && (
+              <div className="p-card" style={{ padding: 32 }}>
+                <PracticeConfig onSubmit={generatePracticePaper} isLoading={loading} />
               </div>
-            </div>
-          )}
+            )}
+            {practiceState === 'test' && practiceData && (
+              <PracticeTestInterface
+                testData={practiceData}
+                onSubmit={submitPracticePaper}
+                onBack={resetPractice}
+              />
+            )}
+            {practiceState === 'result' && practiceResult && (
+              <PracticeResult resultData={practiceResult} onRetry={resetPractice} />
+            )}
+          </div>
+        )}
 
-          {/* CONTENT: PRACTICE MODE */}
-          {!loading && appMode === 'practice' && (
-            <div className="animate-slide-up w-full mx-auto">
-              {practiceState === 'config' && (
-                <div className="max-w-4xl mx-auto">
-                  <PracticeConfig onSubmit={generatePracticePaper} isLoading={loading} />
-                </div>
-              )}
+        {/* ── ANALYTICS ── */}
+        {!loading && appMode === 'analytics' && (
+          <Analytics onNavigate={setAppMode} />
+        )}
 
-              {practiceState === 'test' && practiceData && (
-                <PracticeTestInterface
-                  testData={practiceData}
-                  onSubmit={submitPracticePaper}
-                  onBack={resetPractice}
-                />
-              )}
+        {/* ── DASHBOARD ── */}
+        {!loading && appMode === 'dashboard' && (
+          <Dashboard onNavigate={setAppMode} />
+        )}
 
-              {practiceState === 'result' && practiceResult && (
-                <div className="max-w-4xl mx-auto">
-                  <PracticeResult
-                    resultData={practiceResult}
-                    onRetry={resetPractice}
-                  />
-                </div>
-              )}
-            </div>
-          )}
+      </main>
 
-        </main>
-      </div>
-      <Footer />
+      {/* Footer */}
+      <footer style={{
+        padding: '16px 2rem',
+        borderTop: '1px solid var(--border, rgba(99,102,241,0.15))',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        fontSize: 12, color: 'var(--muted, #64748b)',
+      }}>
+        <span>Vidyastra · CBSE AI Platform</span>
+        <span>Groq + NCERT RAG · Built by Gagandeep Singh</span>
+      </footer>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:.35} }
+      `}</style>
     </div>
   );
 }

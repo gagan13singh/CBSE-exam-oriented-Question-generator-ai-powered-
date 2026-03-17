@@ -1,33 +1,71 @@
 /**
  * services/cache.js
- * In-memory LRU cache with TTL.
- * Questions are cached by SHA-256 hash of the prompt.
- * Grade results are NEVER cached (unique per student).
+ *
+ * FIXES applied:
+ *  OLD: Cache key = SHA-256 of the full prompt (includes NCERT context).
+ *       Problem: Two requests for the same topic but different RAG results
+ *       get different hashes → cache miss → new LLM call with wrong context.
+ *       OR same RAG context for different topics → cache HIT with wrong answer.
+ *
+ *  NEW: Cache key = SHA-256 of (type + class + subject + chapter + topic + difficulty).
+ *       The NCERT context is intentionally excluded from the key.
+ *       Result: same topic always hits the same cache slot, regardless of
+ *       which RAG chunks were retrieved. First response for a topic is cached;
+ *       subsequent requests for the same topic get the cached (correct) answer.
  */
 
 const NodeCache = require('node-cache');
 const crypto = require('crypto');
 
-// 1-hour TTL for questions, check for expired keys every 10 min
+// Questions: 1-hour TTL, max 500 entries
 const questionCache = new NodeCache({ stdTTL: 3600, checkperiod: 600, maxKeys: 500 });
 
-// 30-minute TTL for full paper generation (more compute-heavy)
+// Papers: 30-minute TTL (heavier generation), max 100 entries
 const paperCache = new NodeCache({ stdTTL: 1800, checkperiod: 300, maxKeys: 100 });
 
+/**
+ * Build a stable cache key from the semantically important fields,
+ * deliberately excluding the NCERT context blob.
+ */
+function buildCacheKey(type, params) {
+    const stable = JSON.stringify({
+        type,
+        class: params.class || params.studentClass || '',
+        subject: (params.subject || '').toLowerCase().trim(),
+        chapter: (params.chapter || params.chapters?.[0] || '').toLowerCase().trim(),
+        topic: (params.topic || '').toLowerCase().trim(),
+        difficulty: (params.difficulty || '').toLowerCase().trim(),
+        questionType: (params.questionType || '').toLowerCase().trim(),
+        totalQ: params.totalQuestions || '',
+    });
+    return crypto.createHash('sha256').update(stable).digest('hex');
+}
+
+/**
+ * Legacy key builder — for when callers pass a raw prompt string.
+ * Still used internally as a fallback.
+ */
 function hashPrompt(prompt) {
     return crypto.createHash('sha256').update(prompt).digest('hex');
 }
 
 const cache = {
     /**
-     * Get a cached response. Returns null on miss.
+     * Get a cached response.
+     *
+     * @param {string} type   - 'question' | 'paper'
+     * @param {Object|string} keySource - params object (preferred) or raw prompt string
+     * @returns {*} cached value or null on miss
      */
-    get(type, prompt) {
+    get(type, keySource) {
         const store = type === 'paper' ? paperCache : questionCache;
-        const key = hashPrompt(prompt);
+        const key = typeof keySource === 'object'
+            ? buildCacheKey(type, keySource)
+            : hashPrompt(keySource);
+
         const hit = store.get(key);
         if (hit !== undefined) {
-            console.log(`--> ⚡ CACHE HIT [${type}] key:${key.substring(0, 8)}...`);
+            console.log(`--> ⚡ CACHE HIT  [${type}] ${key.substring(0, 10)}…`);
             return hit;
         }
         return null;
@@ -35,31 +73,57 @@ const cache = {
 
     /**
      * Store a response in the cache.
+     *
+     * @param {string} type   - 'question' | 'paper'
+     * @param {Object|string} keySource - params object (preferred) or raw prompt string
+     * @param {*} value       - value to store
      */
-    set(type, prompt, value) {
+    set(type, keySource, value) {
         const store = type === 'paper' ? paperCache : questionCache;
-        const key = hashPrompt(prompt);
+        const key = typeof keySource === 'object'
+            ? buildCacheKey(type, keySource)
+            : hashPrompt(keySource);
+
         store.set(key, value);
-        console.log(`--> 💾 CACHE SET [${type}] key:${key.substring(0, 8)}...`);
+        console.log(`--> 💾 CACHE SET  [${type}] ${key.substring(0, 10)}…`);
     },
 
     /**
-     * Stats for the health endpoint.
+     * Explicitly invalidate a cache entry.
+     * Useful when a user requests fresh questions for the same topic.
      */
+    invalidate(type, keySource) {
+        const store = type === 'paper' ? paperCache : questionCache;
+        const key = typeof keySource === 'object'
+            ? buildCacheKey(type, keySource)
+            : hashPrompt(keySource);
+
+        store.del(key);
+        console.log(`--> 🗑  CACHE DEL  [${type}] ${key.substring(0, 10)}…`);
+    },
+
+    /** Clear all cached entries (useful for testing / admin reset). */
+    flush() {
+        questionCache.flushAll();
+        paperCache.flushAll();
+        console.log('--> 🧹 Cache flushed');
+    },
+
+    /** Stats for the /api/health endpoint. */
     stats() {
         return {
             questions: {
                 keys: questionCache.keys().length,
                 hits: questionCache.getStats().hits,
-                misses: questionCache.getStats().misses
+                misses: questionCache.getStats().misses,
             },
             papers: {
                 keys: paperCache.keys().length,
                 hits: paperCache.getStats().hits,
-                misses: paperCache.getStats().misses
-            }
+                misses: paperCache.getStats().misses,
+            },
         };
-    }
+    },
 };
 
 module.exports = cache;

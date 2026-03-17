@@ -1,44 +1,43 @@
+/**
+ * src/components/PracticeConfig.jsx
+ * Added: adaptive difficulty — auto-sets difficulty based on chapter history
+ */
+
 import React, { useState, useEffect } from 'react';
-import CustomDropdown from './CustomDropdown';
+import useProgressStore from '../store/useProgressStore';
 
 const PracticeConfig = ({ onSubmit, isLoading }) => {
     const [formData, setFormData] = useState({
         class: '10',
         subject: 'Science',
-        chapters: 'All Chapters', // Default to Full Syllabus
-        totalQuestions: '10',
-        difficulty: 'Standard'
+        chapters: 'All Chapters',
+        totalQuestions: '15',
+        difficulty: 'Standard',
     });
 
     const [syllabus, setSyllabus] = useState(null);
     const [loadingSyllabus, setLoadingSyllabus] = useState(true);
+    const [adaptiveHint, setAdaptiveHint] = useState(null);
 
-    // Fetch Syllabus on mount
+    // Adaptive difficulty from store
+    const getAdaptiveDifficulty = useProgressStore(s => s.getAdaptiveDifficulty);
+
+    // Fetch syllabus on mount
     useEffect(() => {
         fetch('http://localhost:3000/api/v1/syllabus')
             .then(res => res.json())
-            .then(data => {
-                if (data.success) setSyllabus(data.data);
-                setLoadingSyllabus(false);
-            })
-            .catch(err => {
-                console.error("Failed to load syllabus", err);
-                setLoadingSyllabus(false);
-            });
+            .then(data => { if (data.success) setSyllabus(data.data); })
+            .catch(err => console.error('Failed to load syllabus', err))
+            .finally(() => setLoadingSyllabus(false));
     }, []);
 
-    // Update subject when class changes
+    // Reset subject + chapters when class changes
     useEffect(() => {
         if (!syllabus || !formData.class) return;
         const classData = syllabus[`class_${formData.class}`] || {};
         const availableSubjects = Object.keys(classData);
-
         if (!availableSubjects.includes(formData.subject)) {
-            setFormData(prev => ({
-                ...prev,
-                subject: availableSubjects[0] || '',
-                chapters: 'All Chapters'
-            }));
+            setFormData(prev => ({ ...prev, subject: availableSubjects[0] || '', chapters: 'All Chapters' }));
         } else {
             setFormData(prev => ({ ...prev, chapters: 'All Chapters' }));
         }
@@ -49,221 +48,235 @@ const PracticeConfig = ({ onSubmit, isLoading }) => {
         setFormData(prev => ({ ...prev, chapters: '' }));
     }, [formData.subject]);
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    // ── Adaptive difficulty: auto-set when a specific chapter is selected ──
+    useEffect(() => {
+        if (
+            formData.subject &&
+            formData.chapters &&
+            formData.chapters !== 'All Chapters' &&
+            formData.chapters !== ''
+        ) {
+            const suggested = getAdaptiveDifficulty(formData.subject, formData.chapters);
+            setFormData(prev => ({ ...prev, difficulty: suggested }));
+            // Show hint only when not Standard (Standard is the default)
+            setAdaptiveHint(suggested !== 'Standard' ? suggested : null);
+        } else {
+            setAdaptiveHint(null);
+        }
+    }, [formData.chapters]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleSelectChange = (name, value) => {
-        setFormData({ ...formData, [name]: value });
-    };
+    const handleChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
-        // Handle "All Chapters" or specific chapter
-        const chaptersArray = formData.chapters === 'All Chapters' || !formData.chapters
-            ? ['All Chapters']
-            : [formData.chapters];
-
-        onSubmit({
-            ...formData,
-            chapters: chaptersArray,
-            totalQuestions: parseInt(formData.totalQuestions)
-        });
+        const chaptersArray =
+            formData.chapters === 'All Chapters' || !formData.chapters
+                ? ['All Chapters']
+                : [formData.chapters];
+        onSubmit({ ...formData, chapters: chaptersArray, totalQuestions: parseInt(formData.totalQuestions) });
     };
 
-    // Options for dropdowns
-    const classOptions = [
-        { value: '9', label: 'Class 9' },
-        { value: '10', label: 'Class 10' },
-        { value: '11', label: 'Class 11' },
-        { value: '12', label: 'Class 12' }
-    ];
-
+    const classOptions = ['9', '10', '11', '12'];
     const difficultyOptions = [
-        { value: 'Standard', label: 'Standard (Balanced)' },
-        { value: 'Easy', label: 'Easy (Concept Check)' },
-        { value: 'Hard', label: 'Hard (HOTS Focused)' }
+        { value: 'Standard', label: 'Standard' },
+        { value: 'Easy', label: 'Easy' },
+        { value: 'Hard', label: 'Hard' },
     ];
+    const qCountOptions = ['10', '15', '20', '30'];
 
-    // Get subject options based on selected class
     const getSubjectOptions = () => {
         if (!syllabus || !formData.class) return [];
-        const classData = syllabus[`class_${formData.class}`];
-        if (!classData) return [];
-        return Object.keys(classData).map(sub => ({ value: sub, label: sub }));
+        return Object.keys(syllabus[`class_${formData.class}`] || {});
     };
-    const subjectOptions = getSubjectOptions();
 
-    // Get chapter options based on Class & Subject
     const getChapterOptions = () => {
         if (!syllabus || !formData.class || !formData.subject) return [];
-        const classData = syllabus[`class_${formData.class}`] || {};
-        const subjectData = classData[formData.subject] || {};
-
-        const chapters = Object.keys(subjectData).map(chapter => ({
-            value: chapter,
-            label: chapter
-        }));
-
-        return [
-            { value: 'All Chapters', label: 'Full Syllabus (All Chapters)' },
-            ...chapters
-        ];
+        const chapters = Object.keys(
+            (syllabus[`class_${formData.class}`] || {})[formData.subject] || {}
+        ).map(c => ({ value: c, label: c }));
+        return [{ value: 'All Chapters', label: 'Full Syllabus (All Chapters)' }, ...chapters];
     };
+
+    const subjectOptions = getSubjectOptions();
     const chapterOptions = getChapterOptions();
+
+    const labelStyle = {
+        display: 'block', fontSize: 11, fontWeight: 600,
+        textTransform: 'uppercase', letterSpacing: '.07em',
+        color: 'var(--muted)', marginBottom: 7,
+    };
+    const selectStyle = {
+        width: '100%', padding: '11px 34px 11px 13px',
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid var(--border)', borderRadius: 11,
+        color: 'var(--text)', fontSize: 14,
+        fontFamily: 'DM Sans, sans-serif', fontWeight: 500,
+        appearance: 'none', cursor: 'pointer', outline: 'none', transition: 'all .2s',
+    };
+    const fieldStyle = { marginBottom: 18 };
+    const onFocus = e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,.14)'; };
+    const onBlur = e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; };
 
     if (loadingSyllabus) {
         return (
-            <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/50 p-8 w-full flex justify-center items-center min-h-[400px]">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-8 h-8 border-4 border-slate-200 border-t-fuchsia-600 rounded-full animate-spin"></div>
-                    <p className="text-slate-500 font-medium">Loading syllabus...</p>
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '40px 0' }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid rgba(99,102,241,.15)', borderTopColor: 'var(--accent)', animation: 'spin .8s linear infinite' }} />
+                <span style={{ fontSize: 13, color: 'var(--muted)' }}>Loading syllabus…</span>
             </div>
         );
     }
 
     return (
-        <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/50 p-8 w-full transition-all hover:shadow-violet-500/10 hover:border-violet-200">
-            <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 bg-gradient-to-br from-fuchsia-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-fuchsia-500/20 text-white animate-pulse-slow">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                </div>
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Practice Test</h2>
-                    <p className="text-sm text-slate-500 font-medium">Configure your mock exam</p>
-                </div>
+        <div>
+            <div style={{ marginBottom: 28 }}>
+                <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>
+                    Practice Test
+                </h2>
+                <p style={{ fontSize: 13.5, color: 'var(--muted)' }}>CBSE exam-pattern mock paper</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit}>
 
                 {/* Class & Subject */}
-                <div className="grid grid-cols-2 gap-4">
-                    <CustomDropdown
-                        label="Class"
-                        name="class"
-                        value={formData.class}
-                        options={classOptions}
-                        onChange={handleSelectChange}
-                        placeholder="Select Class"
-                        color="fuchsia"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                        }
-                    />
-
-                    <CustomDropdown
-                        label="Subject"
-                        name="subject"
-                        value={formData.subject}
-                        options={subjectOptions}
-                        onChange={handleSelectChange}
-                        placeholder="Select Subject"
-                        color="fuchsia"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-                        }
-                    />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
+                    <div>
+                        <label style={labelStyle}>Class</label>
+                        <div style={{ position: 'relative' }}>
+                            <select name="class" value={formData.class} onChange={handleChange} style={selectStyle} onFocus={onFocus} onBlur={onBlur}>
+                                {classOptions.map(c => <option key={c} value={c} style={{ background: '#131c30' }}>Class {c}</option>)}
+                            </select>
+                            <span style={{ position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', pointerEvents: 'none', fontSize: 10 }}>▾</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label style={labelStyle}>Subject</label>
+                        <div style={{ position: 'relative' }}>
+                            <select name="subject" value={formData.subject} onChange={handleChange} style={selectStyle} onFocus={onFocus} onBlur={onBlur}>
+                                {subjectOptions.map(s => <option key={s} value={s} style={{ background: '#131c30' }}>{s}</option>)}
+                            </select>
+                            <span style={{ position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', pointerEvents: 'none', fontSize: 10 }}>▾</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Chapters */}
-                <div className="space-y-2">
-                    {chapterOptions.length > 0 ? (
-                        <CustomDropdown
-                            label="Chapter Focus"
-                            name="chapters"
-                            value={formData.chapters}
-                            options={chapterOptions}
-                            onChange={handleSelectChange}
-                            placeholder="Select Chapter Focus"
-                            color="purple"
-                            icon={
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                            }
-                        />
-                    ) : (
-                        <div className="relative group">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Chapters</label>
-                            <input
-                                type="text"
-                                name="chapters"
-                                value={formData.chapters}
-                                onChange={handleChange}
-                                placeholder="e.g. Light, Electricity"
-                                required
-                                className="w-full px-4 py-3 pl-12 bg-white border border-slate-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none text-slate-700 font-semibold placeholder-slate-400 group-hover:border-purple-300"
+                <div style={fieldStyle}>
+                    <label style={labelStyle}>Chapters</label>
+                    <div style={{ position: 'relative' }}>
+                        {chapterOptions.length > 0 ? (
+                            <>
+                                <select name="chapters" value={formData.chapters} onChange={handleChange} style={selectStyle} onFocus={onFocus} onBlur={onBlur}>
+                                    {chapterOptions.map(c => <option key={c.value} value={c.value} style={{ background: '#131c30' }}>{c.label}</option>)}
+                                </select>
+                                <span style={{ position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', pointerEvents: 'none', fontSize: 10 }}>▾</span>
+                            </>
+                        ) : (
+                            <input type="text" name="chapters" value={formData.chapters} onChange={handleChange}
+                                placeholder="e.g. Light, Electricity" required
+                                style={{ ...selectStyle, padding: '11px 13px' }} onFocus={onFocus} onBlur={onBlur}
                             />
-                            <div className="absolute left-3 top-9 text-purple-500">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Questions & Difficulty */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Total Questions</label>
-                        <div className="relative group">
-                            <input
-                                type="number"
-                                name="totalQuestions"
-                                value={formData.totalQuestions}
-                                onChange={handleChange}
-                                min="5"
-                                max="30"
-                                className="w-full px-4 py-3 pl-12 bg-white border border-slate-200 rounded-xl focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 transition-all outline-none text-slate-700 font-semibold placeholder-slate-400 group-hover:border-pink-300"
-                            />
-                            <div className="absolute left-3 top-3.5 text-pink-500">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
-                            </div>
-                        </div>
+                        )}
                     </div>
-
-                    <CustomDropdown
-                        label="Difficulty"
-                        name="difficulty"
-                        value={formData.difficulty}
-                        options={difficultyOptions}
-                        onChange={handleSelectChange}
-                        placeholder="Select Difficulty"
-                        color="pink"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                        }
-                    />
                 </div>
 
-                <div className="pt-4">
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="group w-full py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-xl shadow-slate-900/20 transform hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 overflow-hidden relative"
-                    >
-                        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-fuchsia-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                        <span className="relative flex items-center gap-2">
-                            {isLoading ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    <span>Creating Paper...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span>Start Practice Test</span>
-                                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </>
-                            )}
+                {/* Adaptive difficulty hint */}
+                {adaptiveHint && (
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '9px 13px', borderRadius: 9, marginBottom: 14,
+                        background: adaptiveHint === 'Hard'
+                            ? 'rgba(239,68,68,.08)' : 'rgba(16,185,129,.08)',
+                        border: `1px solid ${adaptiveHint === 'Hard'
+                            ? 'rgba(239,68,68,.25)' : 'rgba(16,185,129,.25)'}`,
+                        fontSize: 12.5,
+                        color: adaptiveHint === 'Hard' ? '#ef4444' : '#10b981',
+                    }}>
+                        <span>{adaptiveHint === 'Hard' ? '🔥' : '💡'}</span>
+                        <span>
+                            Adaptive: set to <strong>{adaptiveHint}</strong> based on your past performance in this chapter.
                         </span>
-                    </button>
-                    <p className="text-xs text-center text-slate-400 mt-3">
-                        *Powered by Groq. Paper generation takes ~3-5 seconds. Results are estimated.
-                    </p>
+                    </div>
+                )}
+
+                {/* Total Questions */}
+                <div style={fieldStyle}>
+                    <label style={labelStyle}>Total Questions</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        {qCountOptions.map(n => {
+                            const active = formData.totalQuestions === n;
+                            return (
+                                <button key={n} type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, totalQuestions: n }))}
+                                    style={{
+                                        flex: 1, padding: '10px 8px', borderRadius: 10,
+                                        border: `1px solid ${active ? 'rgba(99,102,241,.5)' : 'var(--border)'}`,
+                                        background: active ? 'rgba(99,102,241,.14)' : 'transparent',
+                                        color: active ? 'var(--accent2)' : 'var(--muted)',
+                                        fontFamily: 'DM Sans, sans-serif', fontSize: 13.5,
+                                        fontWeight: active ? 600 : 500, cursor: 'pointer', transition: 'all .18s',
+                                    }}
+                                >{n}</button>
+                            );
+                        })}
+                    </div>
                 </div>
+
+                {/* Difficulty */}
+                <div style={fieldStyle}>
+                    <label style={labelStyle}>
+                        Difficulty
+                        {adaptiveHint && <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--accent2)', fontWeight: 500 }}>(auto-set)</span>}
+                    </label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        {difficultyOptions.map(({ value, label }) => {
+                            const active = formData.difficulty === value;
+                            const colors = {
+                                Easy: { bg: 'rgba(16,185,129,.12)', border: 'rgba(16,185,129,.4)', color: '#10b981' },
+                                Standard: { bg: 'rgba(99,102,241,.12)', border: 'rgba(99,102,241,.4)', color: 'var(--accent2)' },
+                                Hard: { bg: 'rgba(239,68,68,.12)', border: 'rgba(239,68,68,.4)', color: '#ef4444' },
+                            };
+                            const c = colors[value] || colors.Standard;
+                            return (
+                                <button key={value} type="button"
+                                    onClick={() => { setFormData(prev => ({ ...prev, difficulty: value })); setAdaptiveHint(null); }}
+                                    style={{
+                                        flex: 1, padding: '10px 6px', borderRadius: 10,
+                                        border: `1px solid ${active ? c.border : 'var(--border)'}`,
+                                        background: active ? c.bg : 'transparent',
+                                        color: active ? c.color : 'var(--muted)',
+                                        fontFamily: 'DM Sans, sans-serif', fontSize: 12.5,
+                                        fontWeight: 500, cursor: 'pointer', transition: 'all .18s', textAlign: 'center',
+                                    }}
+                                >{label}</button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Info strip */}
+                <div style={{
+                    background: 'rgba(99,102,241,.06)', border: '1px solid rgba(99,102,241,.15)',
+                    borderRadius: 11, padding: '12px 14px', fontSize: 13,
+                    color: 'var(--muted)', marginBottom: 20,
+                }}>
+                    Estimated time: <strong style={{ color: 'var(--text)' }}>
+                        {Math.max(20, parseInt(formData.totalQuestions) * 2)} minutes
+                    </strong> · CBSE Section A + B + C pattern
+                </div>
+
+                <button type="submit" disabled={isLoading} className="btn-generate">
+                    <div className="btn-shine" />
+                    {isLoading ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+                            <span style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', animation: 'spin .7s linear infinite', display: 'inline-block' }} />
+                            Creating Paper…
+                        </span>
+                    ) : 'Start Practice Test →'}
+                </button>
+
+                <p style={{ textAlign: 'center', fontSize: 11.5, color: 'var(--muted)', marginTop: 10 }}>
+                    Powered by Groq. Generation takes ~3–5 seconds.
+                </p>
             </form>
         </div>
     );

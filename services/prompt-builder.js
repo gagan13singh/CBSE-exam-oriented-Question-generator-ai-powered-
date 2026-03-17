@@ -1,6 +1,14 @@
 /**
  * services/prompt-builder.js
- * All LLM prompts in one place — easy to tune without touching route logic.
+ *
+ * FIXES applied:
+ *  1. NCERT context is now labelled as "reference for answers only" — the LLM
+ *     cannot use RAG context to invent a different question topic.
+ *  2. Topic + Chapter are repeated in bold inside the JSON instruction so
+ *     the LLM cannot drift to a different subject.
+ *  3. Added an explicit "TOPIC LOCK" rule: every question MUST be about the
+ *     specified chapter/topic. If the context doesn't match, ignore it.
+ *  4. Self-check now includes a topic-consistency check.
  */
 
 function getBloomsLevel(studentClass) {
@@ -13,114 +21,133 @@ function getBloomsLevel(studentClass) {
 function getQuestionRequirements(subject) {
     const isMath = subject.toLowerCase().includes('math');
     return isMath
-        ? `STRICT MATH RULE: QUESTIONS MUST BE 100% NUMERICAL/PROBLEM-SOLVING. NO THEORY. NO DEFINITIONS.
-1. [Numerical / Problem Solving] (Standard calculation with step-by-step solution)
-2. [MCQ] (Must require calculation to find the answer. NO theoretical MCQs)
-3. [Graphical / Diagrammatic] (Find area/slope/relation from graph. Provide 'visualization_hint')
-4. [Case-Based] (Real-world scenario requiring numerical analysis)
-5. [HOTS] (Complex multi-concept problem)`
-        : `1. [Numerical / Problem Solving] (Mandatory LaTeX for ALL math/units)
-2. [Theoretical / Definition] (Clear, concise with examples)
-3. [Graphical / Diagrammatic] (Provide 'visualization_hint' describing the diagram)
-4. [Case-Based] (Provide a short context paragraph then ask the question)
-5. [HOTS] (High Order Thinking Skills — requires synthesis of multiple concepts)`;
+        ? `STRICT MATH RULE: ALL QUESTIONS MUST BE 100% NUMERICAL/PROBLEM-SOLVING. NO THEORY. NO DEFINITIONS.
+1. [Numerical / Problem Solving] — standard calculation with step-by-step solution
+2. [MCQ] — requires calculation to find the answer, NOT theoretical
+3. [Graphical / Diagrammatic] — find area/slope/relation from graph; include 'visualization_hint'
+4. [Case-Based] — real-world scenario requiring numerical analysis
+5. [HOTS] — complex multi-concept calculation`
+        : `1. [Numerical / Problem Solving] — mandatory LaTeX for all math/units
+2. [Theoretical / Definition] — clear and concise with examples
+3. [Graphical / Diagrammatic] — include 'visualization_hint' describing the diagram
+4. [Case-Based] — short context paragraph followed by the question
+5. [HOTS] — requires synthesis of multiple concepts`;
 }
 
-/**
- * Build the question generation prompt.
- */
+// ─────────────────────────────────────────────────────────────────────────────
+//  QUESTION GENERATION PROMPT
+// ─────────────────────────────────────────────────────────────────────────────
 function buildQuestionPrompt({ studentClass, subject, chapter, topic, difficulty, ncertContext }) {
     const bloomsLevel = getBloomsLevel(studentClass);
     const requirements = getQuestionRequirements(subject);
 
+    // Build the RAG section — explicitly tell the model what the context is for
+    const ragSection = ncertContext
+        ? `NCERT REFERENCE MATERIAL (use ONLY for answer accuracy and key points — do NOT change the question topic):
+--- BEGIN NCERT TEXT ---
+${ncertContext.substring(0, 6000)}
+--- END NCERT TEXT ---
+
+⚠ IMPORTANT: The NCERT text above is supplementary reference. 
+  • ALL questions MUST be about: ${subject} → ${chapter} → ${topic}
+  • If the NCERT text above is about a different topic, IGNORE it for question writing.
+  • Use it ONLY to verify facts, formulas, and key points in your ANSWERS.`
+        : `No NCERT PDF indexed for this topic. Use your internal CBSE 2024-25 knowledge strictly for: ${subject} → ${chapter} → ${topic}`;
+
     return `You are a SENIOR CBSE EXAM PAPER SETTER with 20+ years of experience.
 
-CRITICAL INSTRUCTION: Generate EXACTLY 5 (FIVE) questions. No more, no fewer.
+══════════════════════════════════════════════════════
+  TOPIC LOCK — ALL 5 QUESTIONS MUST BE ABOUT:
+  Class   : ${studentClass}
+  Subject : ${subject}
+  Chapter : ${chapter}
+  Topic   : ${topic}
+  This is NON-NEGOTIABLE. Do not drift to any other topic.
+══════════════════════════════════════════════════════
 
-CONTEXT:
-- Class: ${studentClass}
-- Subject: ${subject}
-- Chapter: ${chapter}
-- Topic: ${topic}
-- Difficulty: ${difficulty}
-- BLOOM'S TAXONOMY LEVEL: ${bloomsLevel}
+DIFFICULTY    : ${difficulty}
+BLOOM'S LEVEL : ${bloomsLevel}
 
-NCERT GROUNDING (RAG):
-${ncertContext
-        ? `Use the following NCERT textbook content to ensure 100% syllabus compliance and factual accuracy:\n\n--- BEGIN NCERT TEXT ---\n${ncertContext}\n--- END NCERT TEXT ---`
-        : 'No specific NCERT PDF found. Rely strictly on your internal knowledge of the CBSE Syllabus (NCERT 2024-25).'}
+${ragSection}
 
-REQUIREMENTS FOR THE 5 QUESTIONS (GENERATE ALL 5):
+GENERATE EXACTLY 5 QUESTIONS — ALL ABOUT "${topic}" in "${chapter}":
 ${requirements}
 
-STRICT LATEX & FORMATTING RULES:
-1. ALL MATH IS LATEX: Every variable ($x$), number with unit ($5\\;\\text{kg}$), and formula must be in LaTeX enclosed in single dollar signs.
-2. DOUBLE ESCAPE LATEX: Use double backslashes in JSON strings (e.g., "$\\\\frac{1}{2}$", "$\\\\sin(x)$"). NEVER single backslashes.
-3. LANGUAGE: English only. Proper grammar and spelling.
-4. RELATED FORMULAS: For Numerical/HOTS questions, always populate "related_formulas".
-5. VISUALIZATION HINT: For Graphical questions, describe the diagram in "visualization_hint".
+FORMATTING RULES:
+1. LaTeX: every formula, variable, unit in single dollar signs — $F = ma$, $5\\;\\text{kg}$
+2. JSON strings: double-escape backslashes — "$\\\\frac{1}{2}$" NOT "$\\frac{1}{2}$"
+3. Language: English only
+4. related_formulas: required for Numerical and HOTS questions
+5. visualization_hint: required for Graphical questions
 
-OUTPUT: Respond ONLY with valid JSON matching this exact schema:
+OUTPUT — valid JSON only, no markdown, no explanation:
 {
     "valid_topic": true,
     "questions": [
         {
             "question_type": "Numerical",
             "marks": 3,
-            "question": "Question text with LaTeX...",
+            "question": "Question about ${topic}...",
             "answer": "Step-by-step solution...",
-            "key_points": ["Key point 1", "Key point 2"],
-            "related_formulas": ["$F = ma$", "$a = \\\\frac{v-u}{t}$"],
+            "key_points": ["Point 1", "Point 2"],
+            "related_formulas": ["$formula$"],
             "visualization_hint": null
         }
     ]
 }
 
-SELF-CHECK BEFORE RESPONDING:
-- Exactly 5 questions in the array? ✓
-- All LaTeX double-escaped? ✓
-- No spelling errors? ✓
-- Valid JSON? ✓`;
+SELF-CHECK before responding:
+✓ Exactly 5 questions?
+✓ Every question is about "${topic}" in "${chapter}"?
+✓ Answers match the questions (not a different topic)?
+✓ All LaTeX double-escaped in JSON?
+✓ Valid JSON with no trailing commas?`;
 }
 
-/**
- * Build the full paper generation prompt.
- */
+// ─────────────────────────────────────────────────────────────────────────────
+//  PRACTICE PAPER PROMPT
+// ─────────────────────────────────────────────────────────────────────────────
 function buildPaperPrompt({ studentClass, subject, chapters, totalQuestions, difficulty, questionTypes, ncertContext }) {
     const isMath = subject.toLowerCase().includes('math');
-    const mathInstruction = isMath
-        ? 'CRITICAL: ALL MATH QUESTIONS MUST BE 100% NUMERICAL/PROBLEM-SOLVING. No theory or definitions, even in MCQs.'
-        : '';
     const timeAllowed = Math.max(30, totalQuestions * 3);
+
+    const mathInstruction = isMath
+        ? 'CRITICAL: ALL MATH QUESTIONS MUST BE 100% NUMERICAL/PROBLEM-SOLVING. No theory or definitions anywhere.'
+        : '';
+
+    const ragSection = ncertContext
+        ? `NCERT REFERENCE (use for answer accuracy only — do NOT change question topics):
+--- BEGIN NCERT TEXT ---
+${ncertContext.substring(0, 5000)}
+--- END NCERT TEXT ---
+⚠ Questions must be from: ${chapters.join(', ')} — not from any other topic in the reference text.`
+        : `No NCERT PDF indexed. Use internal CBSE 2024-25 knowledge for: ${subject} — ${chapters.join(', ')}`;
 
     return `You are a SENIOR CBSE EXAM PAPER SETTER.
 
-CRITICAL TASK: Generate a COMPLETE PRACTICE PAPER with EXACTLY ${totalQuestions} questions.
-You MUST NOT stop until you have generated all ${totalQuestions} questions.
+══════════════════════════════════════════════════════
+  PAPER LOCK — ALL ${totalQuestions} QUESTIONS MUST BE FROM:
+  Class   : ${studentClass}
+  Subject : ${subject}
+  Chapters: ${chapters.join(', ')}
+══════════════════════════════════════════════════════
 
-CONTEXT:
-- Class: ${studentClass}
-- Subject: ${subject}
-- Chapters: ${chapters.join(', ')}
-- Total Questions Required: ${totalQuestions}
-- Difficulty Profile: ${JSON.stringify(difficulty)}
-- Question Types: ${JSON.stringify(questionTypes)}
-- Time Allowed: ${timeAllowed} minutes
+Time allowed : ${timeAllowed} minutes
+Difficulty   : ${JSON.stringify(difficulty)}
+Question types: ${JSON.stringify(questionTypes)}
 
 ${mathInstruction}
 
-NCERT CONTENT:
-${ncertContext ? ncertContext.substring(0, 5000) : 'Use standard CBSE syllabus.'}
+${ragSection}
 
-CBSE PAPER STRUCTURE:
-- Section A: MCQs (1 mark each) — fill this section first
-- Section B: Short Answer (2-3 marks each)
-- Section C: Long Answer / Case-Based (4-5 marks each)
-- Distribute ${totalQuestions} questions across sections logically
+CBSE PAPER STRUCTURE (distribute ${totalQuestions} questions):
+- Section A — MCQs, 1 mark each
+- Section B — Short Answer, 2–3 marks each
+- Section C — Long Answer / Case-Based, 4–5 marks each
 
-OUTPUT: Respond ONLY with valid JSON matching this exact schema:
+OUTPUT — valid JSON only:
 {
-    "title": "Practice Paper - ${subject} (Class ${studentClass})",
+    "title": "Practice Paper — ${subject} (Class ${studentClass})",
     "time_allowed_mins": ${timeAllowed},
     "sections": [
         {
@@ -130,7 +157,7 @@ OUTPUT: Respond ONLY with valid JSON matching this exact schema:
                     "id": "q1",
                     "type": "MCQ",
                     "marks": 1,
-                    "question": "Question text...",
+                    "question": "Question from ${chapters[0]}...",
                     "options": ["A) ...", "B) ...", "C) ...", "D) ..."],
                     "correct_option": "A",
                     "explanation": "Why A is correct..."
@@ -144,7 +171,7 @@ OUTPUT: Respond ONLY with valid JSON matching this exact schema:
                     "id": "q5",
                     "type": "Short Answer",
                     "marks": 3,
-                    "question": "Question text...",
+                    "question": "Question from ${chapters[0]}...",
                     "model_answer": "Expected key points..."
                 }
             ]
@@ -153,51 +180,44 @@ OUTPUT: Respond ONLY with valid JSON matching this exact schema:
 }
 
 SELF-CHECK:
-- Total questions across all sections = ${totalQuestions}? ✓
-- CBSE board pattern followed? ✓
-- All LaTeX double-escaped? ✓
-- Valid JSON? ✓`;
+✓ Total questions = ${totalQuestions}?
+✓ All questions from the specified chapters?
+✓ Questions and answers consistent (same topic)?
+✓ All LaTeX double-escaped?
+✓ Valid JSON?`;
 }
 
-/**
- * Build the grading prompt.
- */
+// ─────────────────────────────────────────────────────────────────────────────
+//  GRADING PROMPT
+// ─────────────────────────────────────────────────────────────────────────────
 function buildGradePrompt({ submissions }) {
     return `You are a STRICT CBSE EXAMINER grading student answers.
 
-TASK: Grade each student answer based on the model answer provided.
+TASK: Grade each student answer against the model answer provided.
 
-INPUT DATA:
+INPUT:
 ${JSON.stringify(submissions, null, 2)}
 
-GRADING GUIDELINES:
-1. MCQs (Multiple Choice):
-   - NO partial marking whatsoever.
-   - Correct option = full marks. Wrong or blank = 0 marks. NEVER 0.5 for MCQs.
+GRADING RULES:
+1. MCQ — no partial marks. Correct = full marks. Wrong or blank = 0. Never give 0.5 for MCQ.
+2. Subjective — award marks based on key concepts present. Partial marks allowed. Ignore minor spelling.
+3. ZERO RULE — if student_answer is empty, "No Answer", or "No answer provided." → award exactly 0. Always.
+4. Be educational in feedback — tell the student specifically what they missed.
 
-2. Subjective / Short / Long Answers:
-   - Award marks based on key concepts present in the student answer.
-   - Be fair but strict. Ignore minor spelling errors.
-   - Partial marks are allowed and expected for partially correct answers.
-
-3. General Rules:
-   - Award marks_awarded out of max_marks only.
-   - Give specific, educational feedback so students understand what they missed.
-   - CRITICAL ZERO-MARK RULE: If the student_answer is "No Answer", "No answer provided.", or empty, you MUST award EXACTLY 0 marks. Do not grade it as correct under any circumstances.
-
-OUTPUT: Respond ONLY with valid JSON matching this exact schema:
+OUTPUT — valid JSON only:
 {
     "results": [
         {
             "question_id": "q1",
             "marks_awarded": 1,
             "max_marks": 1,
-            "feedback": "Correct! You identified the right option."
+            "feedback": "Correct.",
+            "model_answer": "Copy the model answer here for display"
         }
     ],
-    "total_score": 15,
-    "max_total_score": 20,
-    "overall_feedback": "Good performance. Revisit Chapter 3 for stronger answers on thermodynamics."
+    "total_score": 0,
+    "max_total_score": 0,
+    "overall_feedback": "Summary feedback here."
 }`;
 }
 

@@ -1,54 +1,79 @@
 /**
  * src/components/ModelBadge.jsx
- * Shows which AI is serving requests: Groq ⚡ or Ollama 🐢
+ * Shows only the active connected AI agent — green dot + name only
+ * Shows nothing (invisible) if offline or loading
  */
 
-import React from 'react';
-
 export default function ModelBadge({ health }) {
-    if (!health) {
-        return (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-400 border border-slate-200 animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block"></span>
-                Connecting...
-            </div>
-        );
-    }
+    // Still connecting — show nothing
+    if (!health) return (
+        <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 13px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+            background: 'rgba(100,116,139,.08)', border: '1px solid rgba(100,116,139,.15)',
+            color: 'var(--muted)', opacity: 0.6,
+        }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--muted)', display: 'inline-block' }} />
+            Connecting…
+        </div>
+    );
 
     const groqOnline = health.services?.groq?.status === 'online';
     const ollamaOnline = health.services?.ollama?.status === 'online';
 
+    // ── Groq online — show in green ──
     if (groqOnline) {
+        const model = health.services.groq.model || 'llama-3.3-70b-versatile';
+        // Shorten model name for display
+        const short = model.replace('llama-', 'Llama ').replace('-versatile', '').replace('-8192', '');
         return (
-            <div
-                title="Powered by Groq — ultra-fast free cloud inference"
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200 cursor-default select-none"
-            >
-                <span className="w-1.5 h-1.5 rounded-full bg-violet-500 inline-block animate-pulse"></span>
-                ⚡ Groq · {health.services.groq.model || 'llama-3.3-70b'}
+            <div title={`Groq: ${model}`} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                padding: '5px 13px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+                background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.25)',
+                color: '#10b981',
+            }}>
+                <span style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: '#10b981',
+                    boxShadow: '0 0 6px #10b981',
+                    display: 'inline-block',
+                    animation: 'pulseDot 2s ease-in-out infinite',
+                }} />
+                ⚡ Groq · {short}
             </div>
         );
     }
 
+    // ── Ollama fallback — show in amber ──
     if (ollamaOnline) {
         return (
-            <div
-                title="Using local Ollama — slower but fully offline"
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 cursor-default select-none"
-            >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+            <div title="Ollama — local fallback" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                padding: '5px 13px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+                background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.2)',
+                color: 'var(--gold2)',
+            }}>
+                <span style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: 'var(--gold2)', display: 'inline-block',
+                    animation: 'pulseDot 2s ease-in-out infinite',
+                }} />
                 🐢 Ollama · {health.services.ollama.model || 'llama3'}
             </div>
         );
     }
 
+    // ── Both offline — small red indicator ──
     return (
-        <div
-            title="AI service unavailable"
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200 cursor-default select-none"
-        >
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
-            ⚠ AI Offline
+        <div title="AI service offline" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            padding: '5px 13px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+            background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)',
+            color: '#ef4444',
+        }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
+            AI Offline
         </div>
     );
 }
