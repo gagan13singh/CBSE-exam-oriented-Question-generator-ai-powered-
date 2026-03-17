@@ -24,7 +24,7 @@ const PracticeConfig = ({ onSubmit, isLoading }) => {
 
     // Fetch syllabus on mount
     useEffect(() => {
-        fetch('http://localhost:3000/api/v1/syllabus')
+        fetch(`${import.meta.env.VITE_API_URL}/api/v1/syllabus`)
             .then(res => res.json())
             .then(data => { if (data.success) setSyllabus(data.data); })
             .catch(err => console.error('Failed to load syllabus', err))
