@@ -29,9 +29,12 @@ app.use('/api/v1/status', statusRouter);
 app.use(helmet());
 
 app.use(cors({
-    origin: process.env.ALLOWED_ORIGIN || 'http://localhost:5173',
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type'],
+  origin: [
+    'http://localhost:5173',
+    'https://cbse-exam-oriented-question-generat.vercel.app'
+  ],
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
 }));
 
 // ─── Body Parsing ──────────────────────────────────────────────────────────────
