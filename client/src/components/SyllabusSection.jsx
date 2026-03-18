@@ -36,10 +36,10 @@ function DisclaimerOverlay({ onAccept }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      display: 'flex', alignItems: 'top', justifyContent: 'center',
       padding: '1rem',
-      background: 'rgba(5,9,21,0.88)',
-      backdropFilter: 'blur(14px)',
+      background: 'rgba(21, 23, 33, 0.88)',
+      backdropFilter: 'blur(140px)',
     }}>
       <div style={{
         background: 'var(--surface)',

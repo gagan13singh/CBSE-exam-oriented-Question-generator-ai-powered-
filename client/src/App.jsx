@@ -22,6 +22,7 @@ import UploadPanel from './components/UploadPanel';
 import { useHealth } from './hooks/useHealth';
 import { ENDPOINTS } from './config';
 import useProgressStore from './store/useProgressStore';
+import DoubtPanel from './components/DoubtPanel';
 
 const SCIENTIA_URL = 'https://scientia-lms.vercel.app';
 
@@ -102,6 +103,7 @@ function App() {
   const [animateQ1,            setAnimateQ1]            = useState(false);
   const [lastGenMeta,          setLastGenMeta]          = useState(null);
   const [showUpload,           setShowUpload]           = useState(false);
+  const [lastFormData, setLastFormData] = useState(null)
 
   // Practice
   const [practiceState,      setPracticeState]      = useState('config');
@@ -128,6 +130,7 @@ function App() {
   // ── All existing handlers (UNCHANGED) ──
 
   const generateQuestion = async (formData) => {
+    setLastFormData(formData); 
     setLoading(true);
     setLoadingContext({ class: formData.class, subject: formData.subject });
     setError('');
@@ -487,13 +490,22 @@ function App() {
                     </div>
 
                     {currentQ && (
-                      <QuestionCard
-                        key={`${questionMeta?.generated_at}-${currentQuestionIndex}`}
-                        data={currentQ}
-                        index={currentQuestionIndex + 1}
-                        animate={animateQ1 && currentQuestionIndex === 0}
-                      />
-                    )}
+    <>
+        <QuestionCard
+            key={`${questionMeta?.generated_at}-${currentQuestionIndex}`}
+            data={currentQ}
+            index={currentQuestionIndex + 1}
+            animate={animateQ1 && currentQuestionIndex === 0}
+        />
+        <DoubtPanel                                    
+            questionText={currentQ?.question}
+            subject={lastGenMeta?.subject}
+            chapter={lastGenMeta?.chapter}
+            topic={currentQ?.topic || ''}
+            studentClass={lastFormData?.class || ''}
+        />
+    </>
+)}
 
                     {/* ── Scientia CTA after question ── */}
                     {lastGenMeta && (

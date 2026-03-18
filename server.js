@@ -1,7 +1,7 @@
 /**
  * server.js — Entry point
  * CBSE Question Generator & Practice Platform
- * UPDATED: Added upload + similar question routes
+ * UPDATED: Added doubt engine route + cleaned up duplicate registrations
  */
 
 require('dotenv').config();
@@ -14,15 +14,16 @@ const path    = require('path');
 const errorHandler = require('./middleware/errorHandler');
 const { requestLogger } = require('./middleware/logger');
 
-// Routes
+// ── Routes ────────────────────────────────────────────────────────────────────
 const questionsRouter = require('./routes/questions');
 const paperRouter     = require('./routes/paper');
 const graderRouter    = require('./routes/grader');
 const healthRouter    = require('./routes/health');
 const syllabusRouter  = require('./routes/syllabus');
 const statusRouter    = require('./routes/status');
-const uploadRouter    = require('./routes/upload');   // ← NEW
-const similarRouter   = require('./routes/similar');  // ← NEW
+const uploadRouter    = require('./routes/upload');
+const similarRouter   = require('./routes/similar');
+const doubtRouter     = require('./routes/doubt');   // ← Doubt Engine
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -51,19 +52,16 @@ app.use(express.json({ limit: '2mb' }));
 // ── Request Logging ───────────────────────────────────────────────────────────
 app.use(requestLogger);
 
-// ── Routes ────────────────────────────────────────────────────────────────────
-app.use('/api/health',           healthRouter);
-app.use('/api/v1/syllabus',      syllabusRouter);
-app.use('/api/v1/status',        statusRouter);
-app.use('/api/v1/questions',     questionsRouter);   // handles /generate
-app.use('/api/v1/questions',     similarRouter);     // handles /similar + /similar-from-image
-app.use('/api/v1/paper',         paperRouter);
-app.use('/api/v1/grade',         graderRouter);
-app.use('/api/v1/upload',        uploadRouter);  
-// Combine both question routers under the same prefix
-questionsRouter.use('/', similarRouter);           // ← add similar routes INTO questions router
-app.use('/api/v1/questions', questionsRouter);
-// handles /pdf
+// ── Route Registrations ───────────────────────────────────────────────────────
+app.use('/api/health',       healthRouter);
+app.use('/api/v1/syllabus',  syllabusRouter);
+app.use('/api/v1/status',    statusRouter);
+app.use('/api/v1/questions', questionsRouter);   // handles /generate
+app.use('/api/v1/questions', similarRouter);     // handles /similar + /similar-from-image
+app.use('/api/v1/paper',     paperRouter);
+app.use('/api/v1/grade',     graderRouter);
+app.use('/api/v1/upload',    uploadRouter);
+app.use('/api/v1/doubt',     doubtRouter);       // ← Doubt Engine
 
 // ── Legacy aliases ────────────────────────────────────────────────────────────
 app.post('/generate-questions', (req, res, next) => { req.url = '/generate'; questionsRouter(req, res, next); });
@@ -98,12 +96,14 @@ app.listen(PORT, () => {
     console.log('    POST /api/v1/paper/generate');
     console.log('    POST /api/v1/grade');
     console.log('    POST /api/v1/upload/pdf');
+    console.log('    POST /api/v1/doubt');             // ← NEW
     console.log('========================================\n');
 });
-// Keep-alive ping — prevents Railway/Render from sleeping
+
+// ── Keep-alive ping (Render/Railway) ─────────────────────────────────────────
 if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
     setInterval(() => {
         fetch(`${process.env.RENDER_EXTERNAL_URL}/api/health`)
-            .catch(() => {}); // silent — just keeping it warm
-    }, 10 * 60 * 1000); // ping every 10 minutes
+            .catch(() => {});
+    }, 10 * 60 * 1000);
 }

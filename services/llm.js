@@ -1,15 +1,15 @@
 /**
  * services/llm.js
  * Smart LLM Router: Groq (free cloud) → Ollama (local fallback)
- * UPDATED: Added retry with exponential backoff for Groq rate limits
+ * UPDATED: Added callLLMText() for plain-text responses (Doubt Engine)
  */
 
 const Groq = require('groq-sdk');
 
 const OLLAMA_API_URL = process.env.OLLAMA_URL || 'http://localhost:11434/api/generate';
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3';
-const USE_GROQ = process.env.USE_GROQ !== 'false';
+const GROQ_MODEL     = process.env.GROQ_MODEL  || 'llama-3.3-70b-versatile';
+const OLLAMA_MODEL   = process.env.OLLAMA_MODEL || 'llama3';
+const USE_GROQ       = process.env.USE_GROQ !== 'false';
 
 let groqClient = null;
 
@@ -37,10 +37,7 @@ async function callGroqWithRetry(prompt, retries = 2) {
                         role: 'system',
                         content: 'You are an expert CBSE exam paper setter. Always respond with valid JSON only. No markdown, no explanation. Just the JSON object.',
                     },
-                    {
-                        role: 'user',
-                        content: prompt,
-                    },
+                    { role: 'user', content: prompt },
                 ],
                 temperature: 0.7,
                 max_tokens: 2000,
@@ -53,11 +50,11 @@ async function callGroqWithRetry(prompt, retries = 2) {
 
         } catch (err) {
             const isRateLimit = err?.status === 429 || err?.message?.includes('rate limit');
-            const isLastTry = attempt === retries;
+            const isLastTry   = attempt === retries;
 
             if (isLastTry || !isRateLimit) throw err;
 
-            const delay = 1000 * Math.pow(2, attempt); // 1000ms, 2000ms
+            const delay = 1000 * Math.pow(2, attempt);
             console.warn(`[Groq] Rate limited. Retrying in ${delay}ms (attempt ${attempt + 1}/${retries})...`);
             await new Promise(resolve => setTimeout(resolve, delay));
         }
@@ -65,7 +62,43 @@ async function callGroqWithRetry(prompt, retries = 2) {
 }
 
 /**
- * Call Ollama (local fallback)
+ * ── NEW: Call Groq for PLAIN TEXT (no JSON format enforcement)
+ * Used by the Doubt Engine.
+ */
+async function callGroqText(systemPrompt, userPrompt, retries = 2) {
+    const client = getGroqClient();
+    if (!client) throw new Error('GROQ_API_KEY not configured');
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            const completion = await client.chat.completions.create({
+                model: GROQ_MODEL,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user',   content: userPrompt },
+                ],
+                temperature: 0.6,
+                max_tokens: 800,
+                // No response_format — plain text
+            });
+
+            const text = completion.choices[0]?.message?.content;
+            if (!text) throw new Error('Groq returned empty response');
+            return text.trim();
+
+        } catch (err) {
+            const isRateLimit = err?.status === 429 || err?.message?.includes('rate limit');
+            const isLastTry   = attempt === retries;
+            if (isLastTry || !isRateLimit) throw err;
+            const delay = 1000 * Math.pow(2, attempt);
+            console.warn(`[Groq/Text] Rate limited. Retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+}
+
+/**
+ * Call Ollama (local fallback) — JSON mode
  */
 async function callOllama(prompt) {
     const response = await fetch(OLLAMA_API_URL, {
@@ -73,7 +106,7 @@ async function callOllama(prompt) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             model: OLLAMA_MODEL,
-            prompt: prompt,
+            prompt,
             stream: false,
             format: 'json',
         }),
@@ -85,6 +118,29 @@ async function callOllama(prompt) {
 
     const data = await response.json();
     return parseAndRepairJSON(data.response);
+}
+
+/**
+ * ── NEW: Call Ollama for PLAIN TEXT (no JSON format)
+ */
+async function callOllamaText(prompt) {
+    const response = await fetch(OLLAMA_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            model: OLLAMA_MODEL,
+            prompt,
+            stream: false,
+            // No format: 'json'
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Ollama returned ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return (data.response || '').trim();
 }
 
 /**
@@ -137,14 +193,14 @@ function parseAndRepairJSON(text) {
             return JSON.parse(cleaned);
         } catch (e2) {
             // Last resort
-            cleaned = cleaned.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+            cleaned = cleaned.replace(/\\(?!["\\\/bfnrtu])/g, '\\\\');
             return JSON.parse(cleaned);
         }
     }
 }
 
 /**
- * Main router: Groq (with retry) → Ollama fallback
+ * Main router: Groq (with retry) → Ollama fallback — JSON mode
  */
 async function callLLM(prompt) {
     if (USE_GROQ && process.env.GROQ_API_KEY) {
@@ -165,12 +221,36 @@ async function callLLM(prompt) {
 }
 
 /**
+ * ── NEW: Plain-text router for Doubt Engine
+ * Groq (text) → Ollama text fallback
+ */
+async function callLLMText(systemPrompt, userPrompt) {
+    if (USE_GROQ && process.env.GROQ_API_KEY) {
+        try {
+            console.log(`--> 🚀 [Text] Calling Groq (${GROQ_MODEL})...`);
+            const result = await callGroqText(systemPrompt, userPrompt);
+            console.log('--> ✅ [Text] Groq responded successfully');
+            return { result, model: GROQ_MODEL, provider: 'groq' };
+        } catch (err) {
+            console.warn(`--> ⚠️  [Text] Groq failed (${err.message}). Falling back to Ollama...`);
+        }
+    }
+
+    // Ollama text fallback — combine prompts
+    const combined = `${systemPrompt}\n\n${userPrompt}`;
+    console.log(`--> 🐢 [Text] Calling Ollama (${OLLAMA_MODEL})...`);
+    const result = await callOllamaText(combined);
+    console.log('--> ✅ [Text] Ollama responded successfully');
+    return { result, model: OLLAMA_MODEL, provider: 'ollama' };
+}
+
+/**
  * Health check for both providers
  */
 async function checkHealth() {
     const health = {
-        groq: { status: 'unconfigured', model: GROQ_MODEL },
-        ollama: { status: 'unknown', model: OLLAMA_MODEL },
+        groq:   { status: 'unconfigured', model: GROQ_MODEL },
+        ollama: { status: 'unknown',      model: OLLAMA_MODEL },
     };
 
     if (process.env.GROQ_API_KEY) {
@@ -188,7 +268,7 @@ async function checkHealth() {
             signal: AbortSignal.timeout(3000),
         });
         if (resp.ok) {
-            const data = await resp.json();
+            const data   = await resp.json();
             const models = data.models?.map(m => m.name) || [];
             health.ollama = { status: 'online', models, model: OLLAMA_MODEL };
         }
@@ -199,4 +279,4 @@ async function checkHealth() {
     return health;
 }
 
-module.exports = { callLLM, checkHealth, parseAndRepairJSON };
+module.exports = { callLLM, callLLMText, checkHealth, parseAndRepairJSON };
