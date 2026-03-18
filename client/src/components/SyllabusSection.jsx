@@ -307,7 +307,7 @@ export default function SyllabusSection() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <p style={{ fontSize: 13, color: 'var(--muted)' }}>
               CBSE 2025-26 ·{' '}
-              <a href="https://cbseacademic.nic.in/curriculum_2025-26.html"
+              <a href="https://cbseacademic.nic.in/curriculum_2025.html"
                 target="_blank" rel="noopener noreferrer"
                 style={{ color: 'var(--accent2)', textDecoration: 'none' }}>Official ↗</a>
               {' '}·{' '}
@@ -507,7 +507,7 @@ export default function SyllabusSection() {
               <div style={{ display: 'flex', gap: 14 }}>
                 <a href="https://ncert.nic.in/textbook.php" target="_blank" rel="noopener noreferrer"
                   style={{ color: 'var(--accent2)', fontSize: 11 }}>📥 NCERT PDFs ↗</a>
-                <a href="https://cbseacademic.nic.in/curriculum_2025-26.html" target="_blank" rel="noopener noreferrer"
+                <a href="https://cbseacademic.nic.in/curriculum_2025.html" target="_blank" rel="noopener noreferrer"
                   style={{ color: 'var(--accent2)', fontSize: 11 }}>CBSE Official ↗</a>
               </div>
             </div>
