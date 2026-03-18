@@ -1,10 +1,8 @@
 /**
- * client/src/App.jsx  — COMPLETE REWRITE
- * Fixes:
- *  1. animateQ1 — typewriter plays once, never repeats
- *  2. addSession() called after grading so Dashboard shows real data
- *  3. topic optional — passed as empty string when not selected
- *  4. Dark cosmic theme (matches index.css vars)
+ * client/src/App.jsx — UPDATED
+ * Added: 'syllabus' and 'upload' modes to the existing nav
+ * Upload is integrated into the generator page as a collapsible panel
+ * No style changes — keeps the dark cosmic theme
  */
 import React, { useState } from 'react';
 import QuestionForm from './components/QuestionForm';
@@ -16,6 +14,8 @@ import PracticeResult from './components/PracticeResult';
 import ModelBadge from './components/ModelBadge';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
+import SyllabusSection from './components/SyllabusSection';
+import UploadPanel from './components/UploadPanel';
 import { useHealth } from './hooks/useHealth';
 import { ENDPOINTS } from './config';
 import useProgressStore from './store/useProgressStore';
@@ -24,10 +24,9 @@ function App() {
   const health = useHealth();
   const addSession = useProgressStore(s => s.addSession);
 
-  // ── Mode ─────────────────────────────────────────────────────────────
   const [appMode, setAppMode] = useState('generator');
 
-  // ── Generator ─────────────────────────────────────────────────────────
+  // Generator State
   const [questionData, setQuestionData] = useState(null);
   const [questionMeta, setQuestionMeta] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -36,13 +35,15 @@ function App() {
   const [loadingContext, setLoadingContext] = useState({ class: null, subject: null });
   const [animateQ1, setAnimateQ1] = useState(false);
 
-  // ── Practice ──────────────────────────────────────────────────────────
+  // Upload panel toggle (shown inside generator page)
+  const [showUpload, setShowUpload] = useState(false);
+
+  // Practice State
   const [practiceState, setPracticeState] = useState('config');
   const [practiceData, setPracticeData] = useState(null);
   const [practiceResult, setPracticeResult] = useState(null);
   const [lastPracticeConfig, setLastPracticeConfig] = useState(null);
 
-  // ── Handlers ──────────────────────────────────────────────────────────
   const generateQuestion = async (formData) => {
     setLoading(true);
     setLoadingContext({ class: formData.class, subject: formData.subject });
@@ -56,17 +57,13 @@ function App() {
       const res = await fetch(ENDPOINTS.generateQuestions, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          // ensure topic is at least an empty string, never undefined
-          topic: formData.topic || '',
-        }),
+        body: JSON.stringify({ ...formData, topic: formData.topic || '' }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to generate questions');
       setQuestionData(data.data);
       setQuestionMeta(data.meta);
-      setAnimateQ1(true);   // ← enables typewriter for Q1 only
+      setAnimateQ1(true);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -79,7 +76,7 @@ function App() {
     setLoading(true);
     setLoadingContext({ class: configData.class, subject: configData.subject });
     setError('');
-    setLastPracticeConfig(configData);  // save for addSession later
+    setLastPracticeConfig(configData);
     try {
       const res = await fetch(ENDPOINTS.generatePaper, {
         method: 'POST',
@@ -108,11 +105,9 @@ function App() {
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to grade paper');
-
       setPracticeResult(data.data);
       setPracticeState('result');
 
-      // ── Wire addSession so Dashboard shows real data ──
       if (data.data?.results && lastPracticeConfig) {
         const results = data.data.results;
         const correct = results.filter(r => r.marks_awarded === r.max_marks).length;
@@ -139,13 +134,11 @@ function App() {
     setError('');
   };
 
-  // Navigate between questions — turns off typewriter
   const goTo = (idx) => {
     setAnimateQ1(false);
     setCurrentQuestionIndex(idx);
   };
 
-  // ── Derived ───────────────────────────────────────────────────────────
   const questions = Array.isArray(questionData)
     ? questionData
     : questionData ? [questionData] : [];
@@ -153,12 +146,12 @@ function App() {
 
   const navItems = [
     { mode: 'generator', label: '⚡ Generator' },
-    { mode: 'practice', label: '📝 Practice' },
+    { mode: 'practice',  label: '📝 Practice' },
+    { mode: 'syllabus',  label: '📚 Syllabus' },
     { mode: 'dashboard', label: '📊 Dashboard' },
     { mode: 'analytics', label: '📈 Analytics' },
   ];
 
-  // ── Inline styles ─────────────────────────────────────────────────────
   const S = {
     nav: {
       position: 'sticky', top: 0, zIndex: 100,
@@ -180,9 +173,11 @@ function App() {
       borderRadius: 12, padding: 4, gap: 2,
     },
     main: {
-      maxWidth: appMode === 'dashboard' || appMode === 'analytics' ? 960 : 1080,
+      maxWidth: appMode === 'dashboard' || appMode === 'analytics' || appMode === 'syllabus' ? 960 : 1080,
       margin: '0 auto',
-      padding: appMode === 'dashboard' || appMode === 'analytics' ? '28px 2rem 80px' : '0 2rem 80px',
+      padding: appMode === 'dashboard' || appMode === 'analytics' || appMode === 'syllabus'
+        ? '28px 2rem 80px'
+        : '0 2rem 80px',
       width: '100%',
     },
   };
@@ -211,7 +206,7 @@ function App() {
       </nav>
 
       {/* ── HERO (generator + practice only) ── */}
-      {appMode !== 'dashboard' && appMode !== 'analytics' && (
+      {appMode !== 'dashboard' && appMode !== 'analytics' && appMode !== 'syllabus' && (
         <div style={{ textAlign: 'center', padding: '52px 2rem 36px', maxWidth: 720, margin: '0 auto' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -282,94 +277,110 @@ function App() {
 
         {/* ── GENERATOR ── */}
         {!loading && appMode === 'generator' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: 24, alignItems: 'start' }}>
+          <div style={{ animation: 'revealUp .5s cubic-bezier(.22,1,.36,1) both' }}>
 
-            {/* Form */}
-            <div style={{ position: 'sticky', top: 80 }}>
-              <div className="p-card" style={{ padding: 28 }}>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 4, color: 'var(--text,#e2e8f0)' }}>
-                  Configure question
-                </div>
-                <div style={{ fontSize: 13, color: 'var(--muted,#64748b)', marginBottom: 22 }}>
-                  Select subject and topic
-                </div>
-                <QuestionForm onSubmit={generateQuestion} isLoading={loading} />
-              </div>
+            {/* Upload toggle button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+              <button
+                onClick={() => setShowUpload(v => !v)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '8px 16px', borderRadius: 10,
+                  border: `1px solid ${showUpload ? 'rgba(99,102,241,0.5)' : 'var(--border)'}`,
+                  background: showUpload ? 'rgba(99,102,241,0.1)' : 'transparent',
+                  color: showUpload ? 'var(--accent2)' : 'var(--muted)',
+                  fontSize: 13, fontWeight: 500, fontFamily: 'DM Sans, sans-serif',
+                  cursor: 'pointer', transition: 'all .2s',
+                }}
+              >
+                <span>⬆️</span>
+                {showUpload ? 'Hide Upload Panel' : 'Upload PDF / Question'}
+              </button>
             </div>
 
-            {/* Results */}
-            <div>
-              {!questionData && !error && (
-                <div style={{
-                  border: '1.5px dashed rgba(99,102,241,0.2)',
-                  borderRadius: 20, padding: '60px 40px', textAlign: 'center',
-                }}>
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>🚀</div>
-                  <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 700, marginBottom: 8, color: 'var(--text,#e2e8f0)' }}>
-                    Ready when you are
-                  </div>
-                  <div style={{ fontSize: 14, color: 'var(--muted,#64748b)' }}>
-                    Configure parameters on the left and hit Generate.
-                  </div>
-                </div>
-              )}
+            {/* Upload panel - collapses inline */}
+            {showUpload && (
+              <div style={{ marginBottom: 24, animation: 'revealUp .3s cubic-bezier(.22,1,.36,1) both' }}>
+                <UploadPanel />
+              </div>
+            )}
 
-              {questionData && (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                    <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text,#e2e8f0)' }}>
-                      Generated Questions
+            {/* Main generator layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: 24, alignItems: 'start' }}>
+
+              {/* Form */}
+              <div style={{ position: 'sticky', top: 80 }}>
+                <div className="p-card" style={{ padding: 28 }}>
+                  <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 4, color: 'var(--text,#e2e8f0)' }}>
+                    Configure question
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--muted,#64748b)', marginBottom: 22 }}>
+                    Select subject and topic
+                  </div>
+                  <QuestionForm onSubmit={generateQuestion} isLoading={loading} />
+                </div>
+              </div>
+
+              {/* Results */}
+              <div>
+                {!questionData && !error && (
+                  <div style={{
+                    border: '1.5px dashed rgba(99,102,241,0.2)',
+                    borderRadius: 20, padding: '60px 40px', textAlign: 'center',
+                  }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>🚀</div>
+                    <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 700, marginBottom: 8, color: 'var(--text,#e2e8f0)' }}>
+                      Ready when you are
                     </div>
-                    {questionMeta && (
-                      <span style={{
-                        padding: '3px 11px', borderRadius: 20, fontSize: 11.5, fontWeight: 500,
-                        background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)',
-                        color: 'var(--accent2,#818cf8)',
+                    <div style={{ fontSize: 14, color: 'var(--muted,#64748b)' }}>
+                      Configure parameters on the left and hit Generate.
+                    </div>
+                  </div>
+                )}
+
+                {questionData && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                      <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text,#e2e8f0)' }}>
+                        Generated Questions
+                      </div>
+                      {questionMeta && (
+                        <span style={{
+                          padding: '3px 11px', borderRadius: 20, fontSize: 11.5, fontWeight: 500,
+                          background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)',
+                          color: 'var(--accent2,#818cf8)',
+                        }}>
+                          {currentQuestionIndex + 1}/{questions.length} · {questionMeta.provider === 'groq' ? '⚡' : '🐢'} {questionMeta.model}
+                        </span>
+                      )}
+                    </div>
+
+                    {currentQ && (
+                      <QuestionCard
+                        key={`${questionMeta?.generated_at}-${currentQuestionIndex}`}
+                        data={currentQ}
+                        index={currentQuestionIndex + 1}
+                        animate={animateQ1 && currentQuestionIndex === 0}
+                      />
+                    )}
+
+                    {questions.length > 1 && (
+                      <div style={{
+                        display: 'flex', alignItems: 'center',
+                        justifyContent: 'space-between', marginTop: 20,
                       }}>
-                        {currentQuestionIndex + 1}/{questions.length} · {questionMeta.provider === 'groq' ? '⚡' : '🐢'} {questionMeta.model}
-                      </span>
+                        <button className="btn-secondary" onClick={() => goTo(Math.max(0, currentQuestionIndex - 1))} disabled={currentQuestionIndex === 0}>← Prev</button>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          {questions.map((_, i) => (
+                            <div key={i} className={`page-dot${i === currentQuestionIndex ? ' active' : ''}`} onClick={() => goTo(i)} />
+                          ))}
+                        </div>
+                        <button className="btn-secondary" onClick={() => goTo(Math.min(questions.length - 1, currentQuestionIndex + 1))} disabled={currentQuestionIndex === questions.length - 1}>Next →</button>
+                      </div>
                     )}
                   </div>
-
-                  {currentQ && (
-                    <QuestionCard
-                      key={`${questionMeta?.generated_at}-${currentQuestionIndex}`}
-                      data={currentQ}
-                      index={currentQuestionIndex + 1}
-                      animate={animateQ1 && currentQuestionIndex === 0}
-                    />
-                  )}
-
-                  {questions.length > 1 && (
-                    <div style={{
-                      display: 'flex', alignItems: 'center',
-                      justifyContent: 'space-between', marginTop: 20,
-                    }}>
-                      <button
-                        className="btn-secondary"
-                        onClick={() => goTo(Math.max(0, currentQuestionIndex - 1))}
-                        disabled={currentQuestionIndex === 0}
-                      >← Prev</button>
-
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        {questions.map((_, i) => (
-                          <div
-                            key={i}
-                            className={`page-dot${i === currentQuestionIndex ? ' active' : ''}`}
-                            onClick={() => goTo(i)}
-                          />
-                        ))}
-                      </div>
-
-                      <button
-                        className="btn-secondary"
-                        onClick={() => goTo(Math.min(questions.length - 1, currentQuestionIndex + 1))}
-                        disabled={currentQuestionIndex === questions.length - 1}
-                      >Next →</button>
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -383,15 +394,18 @@ function App() {
               </div>
             )}
             {practiceState === 'test' && practiceData && (
-              <PracticeTestInterface
-                testData={practiceData}
-                onSubmit={submitPracticePaper}
-                onBack={resetPractice}
-              />
+              <PracticeTestInterface testData={practiceData} onSubmit={submitPracticePaper} onBack={resetPractice} />
             )}
             {practiceState === 'result' && practiceResult && (
               <PracticeResult resultData={practiceResult} onRetry={resetPractice} />
             )}
+          </div>
+        )}
+
+        {/* ── SYLLABUS ── */}
+        {!loading && appMode === 'syllabus' && (
+          <div style={{ animation: 'revealUp .5s cubic-bezier(.22,1,.36,1) both' }}>
+            <SyllabusSection />
           </div>
         )}
 
