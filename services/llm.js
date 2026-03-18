@@ -43,7 +43,7 @@ async function callGroqWithRetry(prompt, retries = 2) {
                     },
                 ],
                 temperature: 0.7,
-                max_tokens: 4096,
+                max_tokens: 2000,
                 response_format: { type: 'json_object' },
             });
 

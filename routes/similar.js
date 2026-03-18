@@ -1,9 +1,4 @@
-/**
- * routes/similar.js
- * POST /api/v1/questions/similar            — from pasted text
- * POST /api/v1/questions/similar-from-image — from uploaded image
- */
-
+// routes/similar.js
 const express = require('express');
 const fs      = require('fs');
 const path    = require('path');
@@ -12,7 +7,6 @@ const router  = express.Router();
 const { callLLM } = require('../services/llm');
 const { generateLimiter } = require('../middleware/rateLimiter');
 
-// ── Safe multer load (won't crash server if not installed) ────────────────────
 let multer = null;
 let imageUpload = null;
 
@@ -26,12 +20,10 @@ try {
             else cb(new Error('Only image files accepted.'));
         },
     });
-    console.log('[similar.js] multer loaded ✅');
 } catch (e) {
-    console.warn('[similar.js] multer not installed — image upload disabled. Run: npm install multer');
+    console.warn('[similar.js] multer not installed — image upload disabled.');
 }
 
-// ── Prompt builder ────────────────────────────────────────────────────────────
 function buildSimilarPrompt(question, count, difficulty) {
     const diffInstruction = {
         Easier: 'Generate EASIER questions — simpler numbers, fewer steps.',
@@ -75,7 +67,7 @@ OUTPUT: Valid JSON only. No markdown. No explanation.
 }`;
 }
 
-// ── POST /similar (text) ──────────────────────────────────────────────────────
+// POST /api/v1/questions/similar
 router.post('/similar', generateLimiter, async (req, res, next) => {
     try {
         const { question, count = 3, difficulty = 'Same' } = req.body;
@@ -108,15 +100,13 @@ router.post('/similar', generateLimiter, async (req, res, next) => {
                 generated_at: new Date().toISOString(),
             },
         });
-
     } catch (err) {
         next(err);
     }
 });
 
-// ── POST /similar-from-image ──────────────────────────────────────────────────
+// POST /api/v1/questions/similar-from-image
 router.post('/similar-from-image', generateLimiter, (req, res, next) => {
-    // If multer not installed, return friendly error
     if (!imageUpload) {
         return res.status(503).json({
             success: false,
@@ -126,7 +116,6 @@ router.post('/similar-from-image', generateLimiter, (req, res, next) => {
 
     imageUpload.single('image')(req, res, async (uploadErr) => {
         if (uploadErr) return next(uploadErr);
-
         const tmpPath = req.file?.path;
 
         try {
@@ -138,16 +127,12 @@ router.post('/similar-from-image', generateLimiter, (req, res, next) => {
             const countNum = Math.min(Math.max(parseInt(count) || 3, 1), 10);
 
             const GROQ_API_KEY = process.env.GROQ_API_KEY;
-            if (!GROQ_API_KEY) {
-                throw new Error('Groq API key not set. Image upload requires Groq vision model.');
-            }
+            if (!GROQ_API_KEY) throw new Error('Groq API key not set.');
 
-            // Convert image to base64
             const imageBuffer = fs.readFileSync(tmpPath);
             const base64Image = imageBuffer.toString('base64');
             const mimeType    = req.file.mimetype || 'image/jpeg';
 
-            // Extract question text via Groq vision
             const visionRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -159,14 +144,8 @@ router.post('/similar-from-image', generateLimiter, (req, res, next) => {
                     messages: [{
                         role: 'user',
                         content: [
-                            {
-                                type: 'image_url',
-                                image_url: { url: `data:${mimeType};base64,${base64Image}` },
-                            },
-                            {
-                                type: 'text',
-                                text: 'Extract the exact question text from this image. Return ONLY the question text, nothing else.',
-                            },
+                            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Image}` } },
+                            { type: 'text', text: 'Extract the exact question text from this image. Return ONLY the question text.' },
                         ],
                     }],
                     max_tokens: 500,
@@ -186,7 +165,6 @@ router.post('/similar-from-image', generateLimiter, (req, res, next) => {
                 throw new Error('Could not extract question from the image. Please type it instead.');
             }
 
-            // Generate similar questions
             const prompt = buildSimilarPrompt(extractedText, countNum, difficulty);
             const { result, model, provider } = await callLLM(prompt);
 
@@ -209,7 +187,6 @@ router.post('/similar-from-image', generateLimiter, (req, res, next) => {
                     generated_at: new Date().toISOString(),
                 },
             });
-
         } catch (err) {
             if (tmpPath && fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
             next(err);

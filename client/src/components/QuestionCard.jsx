@@ -1,6 +1,6 @@
 /**
  * src/components/QuestionCard.jsx
- * Dark theme rewrite — all logic UNCHANGED
+ * Mobile responsive update — all logic UNCHANGED
  */
 
 import React, { useRef } from 'react';
@@ -54,12 +54,14 @@ const QuestionCard = ({ data, index, animate = false }) => {
         }}>
 
             {/* ── Header ── */}
-            <div style={{
+            <div className="question-card-header" style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '18px 24px',
+                padding: '14px 16px',
                 borderBottom: '1px solid var(--border)',
+                flexWrap: 'wrap',
+                gap: 8,
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     {index && (
@@ -113,8 +115,8 @@ const QuestionCard = ({ data, index, animate = false }) => {
 
             {/* ── Question body ── */}
             <div style={{
-                padding: '22px 24px',
-                fontSize: 15.5,
+                padding: '18px 16px',
+                fontSize: 15,
                 lineHeight: 1.75,
                 color: '#e2e8f0',
                 fontWeight: 500,
@@ -130,59 +132,61 @@ const QuestionCard = ({ data, index, animate = false }) => {
             {/* ── MCQ Options ── */}
             {data?.options && typeof data.options === 'object' && (
                 <div style={{
-                    padding: '18px 24px',
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: 10,
+                    padding: '14px 16px',
                     borderBottom: '1px solid var(--border)',
                 }}>
-                    {Object.entries(data.options).map(([key, value]) => {
-                        const correct = String(data.correct_option).toLowerCase() === key.toLowerCase();
-                        return (
-                            <div key={key} style={{
-                                display: 'flex',
-                                alignItems: 'flex-start',
-                                gap: 10,
-                                padding: '12px 14px',
-                                borderRadius: 12,
-                                border: `1px solid ${correct ? 'rgba(16,185,129,.4)' : 'var(--border)'}`,
-                                background: correct ? 'rgba(16,185,129,.08)' : 'rgba(255,255,255,.02)',
-                                transition: 'all .2s',
-                            }}>
-                                <span style={{
-                                    width: 26, height: 26,
-                                    borderRadius: 7,
-                                    background: correct ? 'rgba(16,185,129,.25)' : 'rgba(255,255,255,.08)',
-                                    color: correct ? '#10b981' : 'var(--muted)',
-                                    fontSize: 12, fontWeight: 700,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    flexShrink: 0,
+                    <div className="mcq-options-grid">
+                        {Object.entries(data.options).map(([key, value]) => {
+                            const correct = String(data.correct_option).toLowerCase() === key.toLowerCase();
+                            return (
+                                <div key={key} style={{
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: 10,
+                                    padding: '10px 12px',
+                                    borderRadius: 12,
+                                    border: `1px solid ${correct ? 'rgba(16,185,129,.4)' : 'var(--border)'}`,
+                                    background: correct ? 'rgba(16,185,129,.08)' : 'rgba(255,255,255,.02)',
+                                    transition: 'all .2s',
                                 }}>
-                                    {key.toUpperCase()}
-                                </span>
-                                <div style={{
-                                    fontSize: 13.5,
-                                    lineHeight: 1.55,
-                                    color: correct ? '#a7f3d0' : '#94a3b8',
-                                    paddingTop: 2,
-                                }}>
-                                    <MD>{value}</MD>
+                                    <span style={{
+                                        width: 24, height: 24,
+                                        borderRadius: 7,
+                                        background: correct ? 'rgba(16,185,129,.25)' : 'rgba(255,255,255,.08)',
+                                        color: correct ? '#10b981' : 'var(--muted)',
+                                        fontSize: 11, fontWeight: 700,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        flexShrink: 0,
+                                    }}>
+                                        {key.toUpperCase()}
+                                    </span>
+                                    <div style={{
+                                        fontSize: 13,
+                                        lineHeight: 1.55,
+                                        color: correct ? '#a7f3d0' : '#94a3b8',
+                                        paddingTop: 2,
+                                        flex: 1,
+                                        minWidth: 0,
+                                        wordBreak: 'break-word',
+                                    }}>
+                                        <MD>{value}</MD>
+                                    </div>
+                                    {correct && (
+                                        <span style={{ marginLeft: 'auto', color: '#10b981', fontSize: 16, flexShrink: 0 }}>✓</span>
+                                    )}
                                 </div>
-                                {correct && (
-                                    <span style={{ marginLeft: 'auto', color: '#10b981', fontSize: 16, flexShrink: 0 }}>✓</span>
-                                )}
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
             )}
 
             {/* ── Related Formulas ── */}
             {data?.related_formulas?.length > 0 && (
                 <div style={{
-                    margin: '0 24px',
-                    marginTop: 18,
-                    padding: '14px 16px',
+                    margin: '0 16px',
+                    marginTop: 16,
+                    padding: '12px 14px',
                     background: 'rgba(245,158,11,.06)',
                     border: '1px solid rgba(245,158,11,.18)',
                     borderRadius: 12,
@@ -213,7 +217,7 @@ const QuestionCard = ({ data, index, animate = false }) => {
 
             {/* ── Expert Solution ── */}
             {data?.answer && (
-                <div style={{ padding: '18px 24px', paddingTop: data?.related_formulas?.length > 0 ? 14 : 18 }}>
+                <div style={{ padding: '16px', paddingTop: data?.related_formulas?.length > 0 ? 14 : 16 }}>
                     <div style={{
                         fontSize: 11, fontWeight: 600,
                         textTransform: 'uppercase', letterSpacing: '.07em',
@@ -227,8 +231,8 @@ const QuestionCard = ({ data, index, animate = false }) => {
                         background: 'rgba(99,102,241,.06)',
                         border: '1px solid rgba(99,102,241,.15)',
                         borderRadius: 12,
-                        padding: '16px',
-                        fontSize: 14,
+                        padding: '14px',
+                        fontSize: 13.5,
                         lineHeight: 1.7,
                         color: '#c4ccdd',
                     }}>
@@ -243,7 +247,7 @@ const QuestionCard = ({ data, index, animate = false }) => {
 
             {/* ── Marking Scheme Key Points ── */}
             {data?.key_points?.length > 0 && (
-                <div style={{ padding: '0 24px 22px' }}>
+                <div style={{ padding: '0 16px 18px' }}>
                     <div style={{
                         fontSize: 11, fontWeight: 600,
                         textTransform: 'uppercase', letterSpacing: '.07em',
@@ -284,7 +288,7 @@ const QuestionCard = ({ data, index, animate = false }) => {
             {/* ── Visualization hint ── */}
             {data?.visualization_hint && (
                 <div style={{
-                    margin: '0 24px 22px',
+                    margin: '0 16px 18px',
                     padding: '12px 14px',
                     background: 'rgba(139,92,246,.07)',
                     border: '1px solid rgba(139,92,246,.2)',

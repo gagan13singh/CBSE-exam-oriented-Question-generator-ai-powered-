@@ -1,6 +1,6 @@
 /**
  * src/components/PracticeResult.jsx
- * Dark theme rewrite — all logic UNCHANGED
+ * Mobile responsive update — all logic UNCHANGED
  */
 
 import React from 'react';
@@ -19,7 +19,6 @@ const PracticeResult = ({ resultData, onRetry }) => {
     const { total_score, max_total_score, overall_feedback, results } = resultData;
     const percentage = Math.round((total_score / max_total_score) * 100) || 0;
 
-    // ── Grade logic — UNCHANGED ──
     let gradeColor = '#ef4444';
     let gradeBg = 'rgba(239,68,68,.12)';
     let gradeBorder = 'rgba(239,68,68,.3)';
@@ -40,8 +39,7 @@ const PracticeResult = ({ resultData, onRetry }) => {
         gradeBadge = 'Fair'; gradeLetter = 'C';
     }
 
-    // ── Ring stroke offset calculation ──
-    const circumference = 2 * Math.PI * 52; // r=52
+    const circumference = 2 * Math.PI * 52;
     const dashOffset = circumference - (percentage / 100) * circumference;
 
     return (
@@ -52,13 +50,12 @@ const PracticeResult = ({ resultData, onRetry }) => {
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: 20,
-                padding: '32px 28px',
+                padding: '28px 20px',
                 marginBottom: 24,
                 textAlign: 'center',
                 position: 'relative',
                 overflow: 'hidden',
             }}>
-                {/* Top accent line */}
                 <div style={{
                     position: 'absolute', top: 0, left: 0, right: 0, height: 3,
                     background: `linear-gradient(90deg, var(--accent), ${gradeColor})`,
@@ -66,31 +63,28 @@ const PracticeResult = ({ resultData, onRetry }) => {
 
                 <h2 style={{
                     fontFamily: 'Syne, sans-serif',
-                    fontSize: 24, fontWeight: 700,
+                    fontSize: 22, fontWeight: 700,
                     color: 'var(--text)', marginBottom: 6,
                 }}>
                     Test Results
                 </h2>
 
-                {/* AI disclaimer */}
                 <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: 7,
                     background: 'rgba(245,158,11,.08)',
                     border: '1px solid rgba(245,158,11,.2)',
-                    borderRadius: 10, padding: '7px 14px',
-                    fontSize: 12.5, color: '#d4a017',
-                    marginBottom: 28,
+                    borderRadius: 10, padding: '6px 12px',
+                    fontSize: 12, color: '#d4a017',
+                    marginBottom: 24,
                 }}>
                     ⚠ Results are AI-generated and strictly estimated
                 </div>
 
                 {/* Score ring */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-                    <div style={{ position: 'relative', width: 140, height: 140 }}>
-                        <svg width="140" height="140" viewBox="0 0 140 140">
-                            {/* Track */}
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+                    <div style={{ position: 'relative', width: 130, height: 130 }}>
+                        <svg width="130" height="130" viewBox="0 0 140 140">
                             <circle cx="70" cy="70" r="52" fill="none" stroke="rgba(255,255,255,.07)" strokeWidth="8" />
-                            {/* Progress */}
                             <circle
                                 cx="70" cy="70" r="52"
                                 fill="none"
@@ -110,7 +104,7 @@ const PracticeResult = ({ resultData, onRetry }) => {
                         }}>
                             <span style={{
                                 fontFamily: 'Syne, sans-serif',
-                                fontSize: 34, fontWeight: 800, lineHeight: 1,
+                                fontSize: 32, fontWeight: 800, lineHeight: 1,
                                 color: gradeColor,
                             }}>
                                 {total_score}
@@ -122,13 +116,12 @@ const PracticeResult = ({ resultData, onRetry }) => {
                     </div>
                 </div>
 
-                {/* Grade badge */}
                 <div style={{ marginBottom: 16 }}>
                     <span style={{
                         display: 'inline-block',
                         padding: '5px 18px',
                         borderRadius: 20,
-                        fontWeight: 600, fontSize: 13.5,
+                        fontWeight: 600, fontSize: 13,
                         background: gradeBg,
                         border: `1px solid ${gradeBorder}`,
                         color: gradeColor,
@@ -137,19 +130,17 @@ const PracticeResult = ({ resultData, onRetry }) => {
                     </span>
                 </div>
 
-                {/* Feedback */}
                 {overall_feedback && (
                     <p style={{
-                        fontSize: 14, color: 'var(--muted)',
+                        fontSize: 13.5, color: 'var(--muted)',
                         fontStyle: 'italic', lineHeight: 1.65,
-                        maxWidth: 500, margin: '0 auto 24px',
+                        maxWidth: 500, margin: '0 auto 22px',
                     }}>
                         "{overall_feedback}"
                     </p>
                 )}
 
-                {/* Try again button */}
-                <button onClick={onRetry} className="btn-generate" style={{ width: 'auto', padding: '12px 36px' }}>
+                <button onClick={onRetry} className="btn-generate" style={{ width: 'auto', padding: '12px 32px' }}>
                     <div className="btn-shine" />
                     Try Another Test
                 </button>
@@ -188,46 +179,35 @@ const PracticeResult = ({ resultData, onRetry }) => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
-                                    padding: '14px 18px',
+                                    padding: '12px 16px',
                                     borderBottom: '1px solid var(--border)',
+                                    flexWrap: 'wrap',
+                                    gap: 8,
                                 }}>
-                                    <span style={{
-                                        fontSize: 13.5, fontWeight: 600,
-                                        color: 'var(--text)',
-                                    }}>
+                                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
                                         Question {idx + 1}
                                     </span>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                         <span style={{
-                                            padding: '3px 10px',
+                                            padding: '2px 9px',
                                             borderRadius: 20,
-                                            fontSize: 11.5, fontWeight: 600,
+                                            fontSize: 11, fontWeight: 600,
                                             background: statusBg,
                                             border: `1px solid ${statusBorder}`,
                                             color: statusColor,
                                         }}>
                                             {statusLabel}
                                         </span>
-                                        <span style={{
-                                            fontSize: 13.5, fontWeight: 700,
-                                            color: statusColor,
-                                        }}>
+                                        <span style={{ fontSize: 13, fontWeight: 700, color: statusColor }}>
                                             {item.marks_awarded} / {item.max_marks}
                                         </span>
                                     </div>
                                 </div>
 
-                                {/* Answer comparison */}
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: '1fr 1fr',
-                                    gap: 1,
-                                }}>
+                                {/* Answer comparison — stacks on mobile */}
+                                <div className="result-answer-grid">
                                     {/* Student answer */}
-                                    <div style={{
-                                        padding: '14px 18px',
-                                        borderRight: '1px solid var(--border)',
-                                    }}>
+                                    <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
                                         <div style={{
                                             fontSize: 10.5, fontWeight: 600,
                                             textTransform: 'uppercase', letterSpacing: '.07em',
@@ -236,7 +216,7 @@ const PracticeResult = ({ resultData, onRetry }) => {
                                             Your answer
                                         </div>
                                         <div style={{
-                                            fontSize: 13.5, lineHeight: 1.65,
+                                            fontSize: 13, lineHeight: 1.65,
                                             color: zero ? 'rgba(239,68,68,.7)' : '#94a3b8',
                                             fontStyle: !item.student_answer ? 'italic' : 'normal',
                                         }}>
@@ -245,7 +225,7 @@ const PracticeResult = ({ resultData, onRetry }) => {
                                     </div>
 
                                     {/* Model answer */}
-                                    <div style={{ padding: '14px 18px' }}>
+                                    <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
                                         <div style={{
                                             fontSize: 10.5, fontWeight: 600,
                                             textTransform: 'uppercase', letterSpacing: '.07em',
@@ -253,10 +233,7 @@ const PracticeResult = ({ resultData, onRetry }) => {
                                         }}>
                                             Model answer
                                         </div>
-                                        <div style={{
-                                            fontSize: 13.5, lineHeight: 1.65,
-                                            color: '#a7f3d0',
-                                        }}>
+                                        <div style={{ fontSize: 13, lineHeight: 1.65, color: '#a7f3d0' }}>
                                             <MD>{item.model_answer || 'See textbook.'}</MD>
                                         </div>
                                     </div>
@@ -265,8 +242,7 @@ const PracticeResult = ({ resultData, onRetry }) => {
                                 {/* Feedback strip */}
                                 {item.feedback && (
                                     <div style={{
-                                        padding: '10px 18px',
-                                        borderTop: '1px solid var(--border)',
+                                        padding: '10px 16px',
                                         background: 'rgba(99,102,241,.04)',
                                         display: 'flex',
                                         alignItems: 'flex-start',

@@ -1,8 +1,7 @@
 /**
- * client/src/App.jsx — UPDATED
- * Added: 'syllabus' and 'upload' modes to the existing nav
- * Upload is integrated into the generator page as a collapsible panel
- * No style changes — keeps the dark cosmic theme
+ * client/src/App.jsx — MOBILE RESPONSIVE UPDATE
+ * Added mobile bottom nav, responsive layouts, mobile-first approach
+ * All logic and features UNCHANGED
  */
 import React, { useState } from 'react';
 import QuestionForm from './components/QuestionForm';
@@ -145,84 +144,86 @@ function App() {
   const currentQ = questions[currentQuestionIndex];
 
   const navItems = [
-    { mode: 'generator', label: '⚡ Generator' },
-    { mode: 'practice',  label: '📝 Practice' },
-    { mode: 'syllabus',  label: '📚 Syllabus' },
-    { mode: 'dashboard', label: '📊 Dashboard' },
-    { mode: 'analytics', label: '📈 Analytics' },
+    { mode: 'generator', label: '⚡ Generator', icon: '⚡', shortLabel: 'Gen' },
+    { mode: 'practice',  label: '📝 Practice',  icon: '📝', shortLabel: 'Test' },
+    { mode: 'syllabus',  label: '📚 Syllabus',  icon: '📚', shortLabel: 'Syllabus' },
+    { mode: 'dashboard', label: '📊 Dashboard', icon: '📊', shortLabel: 'Stats' },
+    { mode: 'analytics', label: '📈 Analytics', icon: '📈', shortLabel: 'Charts' },
   ];
 
-  const S = {
-    nav: {
-      position: 'sticky', top: 0, zIndex: 100,
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 2rem', height: 64,
-      background: 'rgba(5,9,21,0.85)',
-      backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-      borderBottom: '1px solid var(--border, rgba(99,102,241,0.15))',
-    },
-    logo: {
-      fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 800,
-      background: 'linear-gradient(135deg,#818cf8,#fbbf24)',
-      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-    },
-    navPills: {
-      display: 'flex',
-      background: 'var(--surface, #0d1425)',
-      border: '1px solid var(--border, rgba(99,102,241,0.15))',
-      borderRadius: 12, padding: 4, gap: 2,
-    },
-    main: {
-      maxWidth: appMode === 'dashboard' || appMode === 'analytics' || appMode === 'syllabus' ? 960 : 1080,
-      margin: '0 auto',
-      padding: appMode === 'dashboard' || appMode === 'analytics' || appMode === 'syllabus'
-        ? '28px 2rem 80px'
-        : '0 2rem 80px',
-      width: '100%',
-    },
-  };
+  const isFullWidth = appMode === 'dashboard' || appMode === 'analytics' || appMode === 'syllabus';
 
   return (
     <div className="app-wrapper">
 
-      {/* ── NAV ── */}
-      <nav style={S.nav}>
-        <span style={S.logo}>Vidyastra</span>
+      {/* ── DESKTOP NAV ── */}
+      <nav style={{
+        position: 'sticky', top: 0, zIndex: 100,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 1.25rem', height: 64,
+        background: 'rgba(5,9,21,0.85)',
+        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid var(--border, rgba(99,102,241,0.15))',
+      }}>
+        <span className="app-logo" style={{
+          fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 800,
+          background: 'linear-gradient(135deg,#818cf8,#fbbf24)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          flexShrink: 0,
+        }}>Vidyastra</span>
 
-        <div style={S.navPills}>
+        {/* Desktop nav pills */}
+        <div className="nav-pills-container desktop-nav-pills">
           {navItems.map(({ mode, label }) => (
             <button key={mode} onClick={() => setAppMode(mode)} style={{
-              padding: '7px 18px', borderRadius: 9, border: 'none', cursor: 'pointer',
-              fontSize: 13.5, fontWeight: 500, fontFamily: 'DM Sans, sans-serif',
+              padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 500, fontFamily: 'DM Sans, sans-serif',
               background: appMode === mode ? 'var(--accent, #6366f1)' : 'transparent',
               color: appMode === mode ? '#fff' : 'var(--muted, #64748b)',
               boxShadow: appMode === mode ? '0 4px 16px rgba(99,102,241,0.35)' : 'none',
               transition: 'all .2s',
+              whiteSpace: 'nowrap',
             }}>{label}</button>
           ))}
         </div>
 
-        <ModelBadge health={health} />
+        <div style={{ flexShrink: 0 }}>
+          <ModelBadge health={health} />
+        </div>
+      </nav>
+
+      {/* ── MOBILE BOTTOM NAV ── */}
+      <nav className="mobile-bottom-nav">
+        {navItems.map(({ mode, icon, shortLabel }) => (
+          <button
+            key={mode}
+            className={`mobile-bottom-nav-item${appMode === mode ? ' active' : ''}`}
+            onClick={() => setAppMode(mode)}
+          >
+            <span className="nav-icon">{icon}</span>
+            <span className="nav-label">{shortLabel}</span>
+          </button>
+        ))}
       </nav>
 
       {/* ── HERO (generator + practice only) ── */}
       {appMode !== 'dashboard' && appMode !== 'analytics' && appMode !== 'syllabus' && (
-        <div style={{ textAlign: 'center', padding: '52px 2rem 36px', maxWidth: 720, margin: '0 auto' }}>
+        <div className="hero-section">
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            padding: '5px 14px', borderRadius: 24, marginBottom: 20,
+            padding: '5px 14px', borderRadius: 24, marginBottom: 16,
             background: 'rgba(99,102,241,0.08)',
             border: '1px solid rgba(99,102,241,0.25)',
-            fontSize: 12, fontWeight: 500, color: 'var(--accent2, #818cf8)',
+            fontSize: 11, fontWeight: 500, color: 'var(--accent2, #818cf8)',
           }}>
             <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#fbbf24', display: 'inline-block' }} />
             CBSE Class 9–12 · AI-Powered · NCERT Aligned
           </div>
           <h1 style={{
             fontFamily: 'Syne, sans-serif',
-            fontSize: 'clamp(32px,5vw,56px)',
-            fontWeight: 800, lineHeight: 1.08,
-            letterSpacing: '-0.04em', marginBottom: 14,
+            fontSize: 'clamp(26px,5vw,56px)',
+            fontWeight: 800, lineHeight: 1.1,
+            letterSpacing: '-0.04em', marginBottom: 12,
             color: 'var(--text, #e2e8f0)',
           }}>
             Master every chapter.<br />
@@ -231,14 +232,19 @@ function App() {
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>Ace every exam.</span>
           </h1>
-          <p style={{ fontSize: 15, color: 'var(--muted, #64748b)' }}>
+          <p style={{ fontSize: 14, color: 'var(--muted, #64748b)' }}>
             Questions generated from NCERT textbooks by Groq AI.
           </p>
         </div>
       )}
 
       {/* ── MAIN ── */}
-      <main style={S.main}>
+      <main style={{
+        maxWidth: isFullWidth ? 960 : 1080,
+        margin: '0 auto',
+        padding: isFullWidth ? '20px 1.25rem 80px' : '0 1.25rem 80px',
+        width: '100%',
+      }}>
 
         {/* Error banner */}
         {error && (
@@ -248,15 +254,15 @@ function App() {
             border: '1px solid rgba(239,68,68,0.25)',
             borderRadius: 12, padding: '13px 16px', marginBottom: 24,
           }}>
-            <span style={{ color: '#ef4444', fontSize: 17 }}>⚠</span>
+            <span style={{ color: '#ef4444', fontSize: 17, flexShrink: 0 }}>⚠</span>
             <p style={{ flex: 1, fontSize: 13.5, color: '#fca5a5', margin: 0 }}>{error}</p>
-            <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: 'var(--muted,#64748b)', cursor: 'pointer', fontSize: 18 }}>✕</button>
+            <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: 'var(--muted,#64748b)', cursor: 'pointer', fontSize: 18, flexShrink: 0 }}>✕</button>
           </div>
         )}
 
         {/* Loading */}
         {loading && (
-          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <div style={{
               width: 52, height: 52, borderRadius: '50%',
               margin: '0 auto 20px',
@@ -294,11 +300,12 @@ function App() {
                 }}
               >
                 <span>⬆️</span>
-                {showUpload ? 'Hide Upload Panel' : 'Upload PDF / Question'}
+                <span className="hide-mobile">{showUpload ? 'Hide Upload Panel' : 'Upload PDF / Question'}</span>
+                <span style={{ display: 'none' }} className="show-mobile">{showUpload ? 'Hide' : 'Upload'}</span>
               </button>
             </div>
 
-            {/* Upload panel - collapses inline */}
+            {/* Upload panel */}
             {showUpload && (
               <div style={{ marginBottom: 24, animation: 'revealUp .3s cubic-bezier(.22,1,.36,1) both' }}>
                 <UploadPanel />
@@ -306,15 +313,15 @@ function App() {
             )}
 
             {/* Main generator layout */}
-            <div style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: 24, alignItems: 'start' }}>
+            <div className="generator-layout">
 
               {/* Form */}
-              <div style={{ position: 'sticky', top: 80 }}>
-                <div className="p-card" style={{ padding: 28 }}>
+              <div className="generator-form-sticky" style={{ position: 'sticky', top: 80 }}>
+                <div className="p-card" style={{ padding: 24 }}>
                   <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 4, color: 'var(--text,#e2e8f0)' }}>
                     Configure question
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--muted,#64748b)', marginBottom: 22 }}>
+                  <div style={{ fontSize: 13, color: 'var(--muted,#64748b)', marginBottom: 20 }}>
                     Select subject and topic
                   </div>
                   <QuestionForm onSubmit={generateQuestion} isLoading={loading} />
@@ -326,21 +333,21 @@ function App() {
                 {!questionData && !error && (
                   <div style={{
                     border: '1.5px dashed rgba(99,102,241,0.2)',
-                    borderRadius: 20, padding: '60px 40px', textAlign: 'center',
+                    borderRadius: 20, padding: '48px 28px', textAlign: 'center',
                   }}>
-                    <div style={{ fontSize: 48, marginBottom: 16 }}>🚀</div>
-                    <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 22, fontWeight: 700, marginBottom: 8, color: 'var(--text,#e2e8f0)' }}>
+                    <div style={{ fontSize: 44, marginBottom: 14 }}>🚀</div>
+                    <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 20, fontWeight: 700, marginBottom: 8, color: 'var(--text,#e2e8f0)' }}>
                       Ready when you are
                     </div>
                     <div style={{ fontSize: 14, color: 'var(--muted,#64748b)' }}>
-                      Configure parameters on the left and hit Generate.
+                      Configure parameters above and hit Generate.
                     </div>
                   </div>
                 )}
 
                 {questionData && (
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
                       <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text,#e2e8f0)' }}>
                         Generated Questions
                       </div>
@@ -365,12 +372,12 @@ function App() {
                     )}
 
                     {questions.length > 1 && (
-                      <div style={{
+                      <div className="pagination-controls" style={{
                         display: 'flex', alignItems: 'center',
-                        justifyContent: 'space-between', marginTop: 20,
+                        justifyContent: 'space-between', marginTop: 20, gap: 12,
                       }}>
                         <button className="btn-secondary" onClick={() => goTo(Math.max(0, currentQuestionIndex - 1))} disabled={currentQuestionIndex === 0}>← Prev</button>
-                        <div style={{ display: 'flex', gap: 6 }}>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
                           {questions.map((_, i) => (
                             <div key={i} className={`page-dot${i === currentQuestionIndex ? ' active' : ''}`} onClick={() => goTo(i)} />
                           ))}
@@ -387,9 +394,9 @@ function App() {
 
         {/* ── PRACTICE ── */}
         {!loading && appMode === 'practice' && (
-          <div style={{ maxWidth: practiceState === 'test' ? '100%' : 680, margin: '0 auto' }}>
+          <div className="practice-config-wrapper" style={{ maxWidth: practiceState === 'test' ? '100%' : 680, margin: '0 auto' }}>
             {practiceState === 'config' && (
-              <div className="p-card" style={{ padding: 32 }}>
+              <div className="p-card" style={{ padding: '28px 20px' }}>
                 <PracticeConfig onSubmit={generatePracticePaper} isLoading={loading} />
               </div>
             )}
@@ -423,18 +430,29 @@ function App() {
 
       {/* Footer */}
       <footer style={{
-        padding: '16px 2rem',
+        padding: '14px 1.25rem',
         borderTop: '1px solid var(--border, rgba(99,102,241,0.15))',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        fontSize: 12, color: 'var(--muted, #64748b)',
+        fontSize: 11, color: 'var(--muted, #64748b)',
+        flexWrap: 'wrap', gap: 6,
+        marginBottom: '56px', // above mobile nav
       }}>
-        <span>Vidyastra · CBSE AI Platform</span>
-        <span>Groq + NCERT RAG · Built by Gagandeep Singh</span>
+        <span>Vidyastra · AI PLATFORM</span>
+        <span className="hide-mobile">Groq + NCERT RAG · Built by Gagandeep Singh</span>
       </footer>
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+        /* Show mobile text helpers */
+        @media (max-width: 768px) {
+          .hide-mobile { display: none !important; }
+          .show-mobile { display: inline !important; }
+        }
+        @media (min-width: 769px) {
+          .show-mobile { display: none !important; }
+        }
       `}</style>
     </div>
   );

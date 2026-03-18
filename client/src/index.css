@@ -30,6 +30,10 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
@@ -37,6 +41,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 ::selection {
@@ -284,9 +289,11 @@ body {
   pointer-events: none;
 }
 
-.p-card:hover {
-  border-color: var(--border2);
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .p-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+  }
 }
 
 /* ══════════════════════════════════════
@@ -585,8 +592,444 @@ body {
 }
 
 /* ══════════════════════════════════════
-   RESPONSIVE
+   NAV RESPONSIVE
 ══════════════════════════════════════ */
+
+/* Mobile nav pill scrollable */
+.nav-pills-container {
+  display: flex;
+  background: var(--surface, #0d1425);
+  border: 1px solid var(--border, rgba(99,102,241,0.15));
+  border-radius: 12px;
+  padding: 4px;
+  gap: 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: calc(100vw - 180px);
+}
+
+.nav-pills-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* ══════════════════════════════════════
+   GENERATOR LAYOUT — RESPONSIVE
+══════════════════════════════════════ */
+
+.generator-layout {
+  display: grid;
+  grid-template-columns: 440px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ══════════════════════════════════════
+   PRACTICE TEST — RESPONSIVE
+══════════════════════════════════════ */
+
+.practice-test-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding-bottom: 60px;
+  width: 100%;
+}
+
+.practice-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+/* ══════════════════════════════════════
+   SYLLABUS RESPONSIVE
+══════════════════════════════════════ */
+
+.syllabus-layout {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+}
+
+.syllabus-subjects {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.syllabus-topics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ══════════════════════════════════════
+   DASHBOARD RESPONSIVE
+══════════════════════════════════════ */
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.dashboard-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* ══════════════════════════════════════
+   ANALYTICS RESPONSIVE
+══════════════════════════════════════ */
+
+.analytics-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+/* ══════════════════════════════════════
+   QUESTION CARD MCQ OPTIONS
+══════════════════════════════════════ */
+
+.mcq-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ══════════════════════════════════════
+   PRACTICE RESULT — RESPONSIVE
+══════════════════════════════════════ */
+
+.result-answer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+}
+
+/* ══════════════════════════════════════
+   MOBILE BOTTOM NAV (≤768px)
+══════════════════════════════════════ */
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+/* ══════════════════════════════════════
+   UPLOAD PANEL FIELDS
+══════════════════════════════════════ */
+
+.upload-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* ══════════════════════════════════════
+   SIMILAR OPTIONS GRID
+══════════════════════════════════════ */
+
+.similar-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+/* ══════════════════════════════════════
+   HERO SECTION
+══════════════════════════════════════ */
+
+.hero-section {
+  text-align: center;
+  padding: 52px 2rem 36px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+══════════════════════════════════════ */
+
+/* ── Large tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .generator-layout {
+    grid-template-columns: 380px 1fr;
+    gap: 20px;
+  }
+
+  .dashboard-stats,
+  .analytics-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Tablet (≤768px) ── */
+@media (max-width: 768px) {
+  /* Nav */
+  .nav-pills-container {
+    max-width: calc(100vw - 120px);
+  }
+
+  /* Hero */
+  .hero-section {
+    padding: 32px 1rem 24px;
+  }
+
+  /* Generator: stack vertically */
+  .generator-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* The sticky form card becomes normal flow */
+  .generator-form-sticky {
+    position: static !important;
+  }
+
+  /* Practice test: hide sidebar, show mobile bar */
+  .practice-test-layout {
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 100px;
+  }
+
+  .practice-sidebar {
+    width: 100%;
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  /* Syllabus: stack vertically */
+  .syllabus-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .syllabus-subjects {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  /* Topics: single column */
+  .syllabus-topics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Dashboard */
+  .dashboard-stats,
+  .analytics-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .dashboard-panels {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* MCQ options: single column */
+  .mcq-options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Practice result */
+  .result-answer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Upload fields */
+  .upload-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Similar options */
+  .similar-options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Mobile bottom nav */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: rgba(13, 20, 37, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 8px 4px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .mobile-bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all .18s;
+    min-width: 56px;
+  }
+
+  .mobile-bottom-nav-item.active {
+    background: rgba(99, 102, 241, 0.15);
+  }
+
+  .mobile-bottom-nav-item .nav-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .mobile-bottom-nav-item .nav-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .mobile-bottom-nav-item.active .nav-label {
+    color: var(--accent2);
+  }
+
+  /* Hide desktop nav pills on small screens */
+  .desktop-nav-pills {
+    display: none;
+  }
+
+  /* Main content bottom padding for mobile nav */
+  main {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Hide model badge label on small screens */
+  .model-badge-label {
+    display: none;
+  }
+
+  /* Practice config at full width */
+  .practice-config-wrapper {
+    max-width: 100% !important;
+  }
+}
+
+/* ── Mobile (≤480px) ── */
+@media (max-width: 480px) {
+  /* Further reduce padding */
+  .hero-section {
+    padding: 24px 1rem 16px;
+  }
+
+  /* Nav: tighter */
+  .nav-pills-container {
+    max-width: calc(100vw - 100px);
+    padding: 3px;
+    gap: 1px;
+  }
+
+  /* Dashboard stats: 2 col but tighter */
+  .dashboard-stats,
+  .analytics-stats {
+    gap: 8px;
+  }
+
+  /* Logo smaller */
+  .app-logo {
+    font-size: 16px !important;
+  }
+
+  /* Question card header: wrap */
+  .question-card-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Pagination controls: compact */
+  .pagination-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  /* Practice test timer: smaller */
+  .practice-timer-value {
+    font-size: 30px !important;
+  }
+
+  /* Navigator grid: more columns */
+  .navigator-grid {
+    grid-template-columns: repeat(6, 1fr) !important;
+  }
+
+  /* Upload drop zone: compact */
+  .upload-dropzone {
+    padding: 16px 12px !important;
+  }
+
+  /* Syllabus class tabs: wrap */
+  .syllabus-class-tabs {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Section result answer cols: always stack */
+  .result-answer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Similar tab mode buttons */
+  .similar-mode-btns {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* ── Very small (≤360px) ── */
+@media (max-width: 360px) {
+  .dashboard-stats,
+  .analytics-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .mobile-bottom-nav-item {
+    min-width: 44px;
+    padding: 5px 4px;
+  }
+
+  .mobile-bottom-nav-item .nav-icon {
+    font-size: 16px;
+  }
+}
+
+/* ══════════════════════════════════════
+   EXISTING RESPONSIVE (keep)
+══════════════════════════════════════ */
+
 @media (max-width: 768px) {
   .two-col-layout {
     grid-template-columns: 1fr !important;

@@ -1,9 +1,6 @@
 /**
  * client/src/components/UploadPanel.jsx
- * Compact panel that sits inside the generator page.
- * Tab 1 — Upload your NCERT PDF to ground RAG
- * Tab 2 — Upload/paste a question → get similar questions
- * Matches the dark cosmic theme of the app.
+ * Mobile responsive update — all logic UNCHANGED
  */
 
 import React, { useState, useRef } from 'react';
@@ -11,7 +8,7 @@ import { ENDPOINTS } from '../config';
 import QuestionCard from './QuestionCard';
 
 export default function UploadPanel() {
-  const [tab, setTab] = useState('pdf'); // 'pdf' | 'similar'
+  const [tab, setTab] = useState('pdf');
 
   return (
     <div className="p-card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -20,31 +17,34 @@ export default function UploadPanel() {
         display: 'flex',
         borderBottom: '1px solid var(--border)',
         background: 'rgba(255,255,255,0.02)',
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
       }}>
         {[
-          { id: 'pdf',     label: '📄 Upload Textbook PDF', desc: 'Ground AI in your own NCERT chapter' },
-          { id: 'similar', label: '❓ Get Similar Questions', desc: 'Paste or photo a question, get more like it' },
+          { id: 'pdf',     label: '📄 Upload Textbook PDF', desc: 'Ground AI in your NCERT chapter' },
+          { id: 'similar', label: '❓ Get Similar Questions', desc: 'Paste or photo a question' },
         ].map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             style={{
-              flex: 1, padding: '14px 20px', border: 'none', cursor: 'pointer',
+              flex: 1, padding: '12px 16px', border: 'none', cursor: 'pointer',
               background: tab === t.id ? 'rgba(99,102,241,0.08)' : 'transparent',
               borderBottom: tab === t.id ? '2px solid var(--accent)' : '2px solid transparent',
               transition: 'all .2s', textAlign: 'left',
+              minWidth: 140,
             }}
           >
-            <div style={{ fontSize: 13.5, fontWeight: 600, color: tab === t.id ? 'var(--accent2)' : 'var(--muted)', fontFamily: 'DM Sans, sans-serif' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: tab === t.id ? 'var(--accent2)' : 'var(--muted)', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' }}>
               {t.label}
             </div>
-            <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 2 }}>{t.desc}</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2, whiteSpace: 'nowrap' }}>{t.desc}</div>
           </button>
         ))}
       </div>
 
       {/* Content */}
-      <div style={{ padding: 24 }}>
+      <div style={{ padding: 20 }}>
         {tab === 'pdf'     && <PDFTab />}
         {tab === 'similar' && <SimilarTab />}
       </div>
@@ -52,14 +52,13 @@ export default function UploadPanel() {
   );
 }
 
-/* ─── PDF Upload Tab ──────────────────────────────────────────────────────── */
 function PDFTab() {
   const [file, setFile]       = useState(null);
   const [cls, setCls]         = useState('');
   const [subject, setSubject] = useState('');
   const [chapter, setChapter] = useState('');
   const [dragging, setDragging] = useState(false);
-  const [status, setStatus]   = useState('idle'); // idle | uploading | success | error
+  const [status, setStatus]   = useState('idle');
   const [msg, setMsg]         = useState('');
   const ref = useRef();
 
@@ -107,21 +106,21 @@ function PDFTab() {
     <div>
       {/* Legal note */}
       <div style={{
-        display: 'flex', gap: 10, padding: '10px 14px',
+        display: 'flex', gap: 10, padding: '9px 12px',
         background: 'rgba(245,158,11,0.07)',
         border: '1px solid rgba(245,158,11,0.2)',
-        borderRadius: 10, marginBottom: 18, fontSize: 12.5, color: '#d4a017',
+        borderRadius: 10, marginBottom: 16, fontSize: 12, color: '#d4a017',
       }}>
-        <span>⚖️</span>
-        <span>Upload <strong>your own copy</strong> of the NCERT PDF. We process it locally for indexing only and never redistribute it.{' '}
+        <span style={{ flexShrink: 0 }}>⚖️</span>
+        <span>Upload <strong>your own copy</strong> of the NCERT PDF.{' '}
           <a href="https://ncert.nic.in/textbook.php" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'underline' }}>
-            Download free official PDFs ↗
+            Free PDFs ↗
           </a>
         </span>
       </div>
 
-      {/* Fields row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 14 }}>
+      {/* Fields — responsive */}
+      <div className="upload-fields-grid">
         <div>
           <label style={{ display: 'block', fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--muted)', marginBottom: 5 }}>Class</label>
           <select value={cls} onChange={e => setCls(e.target.value)} style={selectStyle}>
@@ -151,37 +150,37 @@ function PDFTab() {
       {/* Drop zone */}
       {status !== 'success' && (
         <div
+          className="upload-dropzone"
           onDragOver={e => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
           onClick={() => ref.current.click()}
           style={{
-            cursor: 'pointer', borderRadius: 12, padding: '24px 20px',
+            cursor: 'pointer', borderRadius: 12, padding: '20px',
             border: `1.5px dashed ${dragging ? 'var(--accent)' : file ? 'rgba(16,185,129,0.5)' : 'var(--border2, rgba(99,102,241,0.3))'}`,
             background: dragging ? 'rgba(99,102,241,0.06)' : file ? 'rgba(16,185,129,0.05)' : 'rgba(255,255,255,0.02)',
             textAlign: 'center', transition: 'all .2s',
           }}
         >
           <input ref={ref} type="file" accept=".pdf" onChange={e => { if (e.target.files[0]?.type === 'application/pdf') setFile(e.target.files[0]); }} style={{ display: 'none' }} />
-          <div style={{ fontSize: 28, marginBottom: 8 }}>{file ? '✅' : '📄'}</div>
+          <div style={{ fontSize: 24, marginBottom: 6 }}>{file ? '✅' : '📄'}</div>
           {file ? (
             <>
-              <div style={{ fontSize: 13.5, fontWeight: 600, color: '#10b981' }}>{file.name}</div>
-              <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 4 }}>{(file.size / 1024 / 1024).toFixed(2)} MB · Click to change</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#10b981', wordBreak: 'break-all' }}>{file.name}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>{(file.size / 1024 / 1024).toFixed(2)} MB · Tap to change</div>
             </>
           ) : (
             <>
-              <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text)' }}>Drop your NCERT PDF here</div>
-              <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 4 }}>or click to browse · PDF only · max 20MB</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>Drop PDF or tap to browse</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>PDF only · max 20MB</div>
             </>
           )}
         </div>
       )}
 
-      {/* Message */}
       {msg && (
         <div style={{
-          marginTop: 12, padding: '10px 14px', borderRadius: 9, fontSize: 13,
+          marginTop: 12, padding: '9px 12px', borderRadius: 9, fontSize: 13,
           background: status === 'success' ? 'rgba(16,185,129,0.08)' : status === 'error' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
           border: `1px solid ${status === 'success' ? 'rgba(16,185,129,0.25)' : status === 'error' ? 'rgba(239,68,68,0.25)' : 'rgba(245,158,11,0.25)'}`,
           color: status === 'success' ? '#10b981' : status === 'error' ? '#ef4444' : '#d4a017',
@@ -192,7 +191,6 @@ function PDFTab() {
         </div>
       )}
 
-      {/* Button */}
       <div style={{ marginTop: 14 }}>
         {status === 'success' ? (
           <button onClick={() => { setStatus('idle'); setMsg(''); }} className="btn-secondary" style={{ width: '100%' }}>
@@ -219,9 +217,8 @@ function PDFTab() {
   );
 }
 
-/* ─── Similar Questions Tab ───────────────────────────────────────────────── */
 function SimilarTab() {
-  const [mode, setMode]         = useState('text'); // 'text' | 'image'
+  const [mode, setMode]         = useState('text');
   const [text, setText]         = useState('');
   const [imageFile, setImgFile] = useState(null);
   const [imgPreview, setPreview] = useState(null);
@@ -283,12 +280,11 @@ function SimilarTab() {
   return (
     <div>
       {/* Input mode */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      <div className="similar-mode-btns" style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
         <button style={btnStyle(mode === 'text')} onClick={() => setMode('text')}>✏️ Type / Paste</button>
         <button style={btnStyle(mode === 'image')} onClick={() => setMode('image')}>📸 Upload Photo</button>
       </div>
 
-      {/* Text area */}
       {mode === 'text' && (
         <textarea
           value={text}
@@ -307,11 +303,10 @@ function SimilarTab() {
         />
       )}
 
-      {/* Image upload */}
       {mode === 'image' && (
         imgPreview ? (
           <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', marginBottom: 4 }}>
-            <img src={imgPreview} alt="Question" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', background: 'rgba(0,0,0,0.3)' }} />
+            <img src={imgPreview} alt="Question" style={{ width: '100%', maxHeight: 180, objectFit: 'contain', background: 'rgba(0,0,0,0.3)' }} />
             <button onClick={() => { setImgFile(null); setPreview(null); }} style={{
               position: 'absolute', top: 8, right: 8,
               width: 28, height: 28, borderRadius: '50%',
@@ -323,21 +318,21 @@ function SimilarTab() {
           <div
             onClick={() => imgRef.current.click()}
             style={{
-              cursor: 'pointer', borderRadius: 10, padding: '28px 20px', textAlign: 'center',
+              cursor: 'pointer', borderRadius: 10, padding: '22px 16px', textAlign: 'center',
               border: '1.5px dashed var(--border2, rgba(99,102,241,0.3))',
               background: 'rgba(255,255,255,0.02)',
             }}
           >
             <input ref={imgRef} type="file" accept="image/*" onChange={handleImg} style={{ display: 'none' }} />
-            <div style={{ fontSize: 28, marginBottom: 8 }}>📸</div>
+            <div style={{ fontSize: 24, marginBottom: 6 }}>📸</div>
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>Upload a photo of your question</div>
-            <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 4 }}>From textbook, notes, or worksheet</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>From textbook, notes, or worksheet</div>
           </div>
         )
       )}
 
       {/* Options */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 14 }}>
+      <div className="similar-options-grid">
         <div>
           <label style={{ display: 'block', fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--muted)', marginBottom: 6 }}>Count</label>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -360,14 +355,12 @@ function SimilarTab() {
         </div>
       </div>
 
-      {/* Error */}
       {error && (
         <div style={{ marginTop: 12, padding: '9px 13px', borderRadius: 9, fontSize: 13, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444', display: 'flex', gap: 8 }}>
           <span>❌</span> {error}
         </div>
       )}
 
-      {/* CTA */}
       <button onClick={generate} disabled={loading} className="btn-generate" style={{ marginTop: 14, position: 'relative' }}>
         <div className="btn-shine" />
         {loading ? (
@@ -378,10 +371,9 @@ function SimilarTab() {
         ) : `✨ Generate ${count} Similar Questions`}
       </button>
 
-      {/* Results */}
       {results && Array.isArray(results) && (
         <div style={{ marginTop: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
             <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>
               Similar Questions ({results.length})
             </div>

@@ -1,26 +1,34 @@
-/**
- * src/hooks/useHealth.js
- * Polls /api/health every 30s to show Groq/Ollama status badge.
- */
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ENDPOINTS } from '../config';
 
 export function useHealth() {
-    const [health, setHealth] = useState(null); // null = loading
+    const [health, setHealth] = useState(null);
+    const lastGoodHealth = useRef(null); // preserve last known good state
 
     const fetchHealth = async () => {
         try {
-            const res = await fetch(ENDPOINTS.health, { signal: AbortSignal.timeout(5000) });
-            if (res.ok) setHealth(await res.json());
+            const res = await fetch(ENDPOINTS.health, {
+                signal: AbortSignal.timeout(12000), // 12s — enough for cold start
+            });
+            if (res.ok) {
+                const data = await res.json();
+                lastGoodHealth.current = data;
+                setHealth(data);
+            }
         } catch {
-            setHealth(null);
+            // Don't reset to null — keep showing last known state
+            // Only show null (connecting) on very first load
+            if (lastGoodHealth.current) {
+                setHealth(lastGoodHealth.current);
+            }
+            // silently retry on next interval
         }
     };
 
     useEffect(() => {
         fetchHealth();
-        const interval = setInterval(fetchHealth, 30000);
+        // Poll every 60s instead of 30s — no need to hammer the server
+        const interval = setInterval(fetchHealth, 60_000);
         return () => clearInterval(interval);
     }, []);
 

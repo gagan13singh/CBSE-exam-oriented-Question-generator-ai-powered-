@@ -1,101 +1,89 @@
 /**
  * client/src/components/SyllabusSection.jsx
- * Dark cosmic theme — matches Vidyastra's existing design system
- * Shows disclaimer overlay on first open, then topic browser
+ *
+ * REBUILT: Full 3-level hierarchy — Class → Subject → Chapters (expandable) → Topics
+ * Uses syllabusData.js (embedded, no network call)
+ *
+ * ─── Copyright Compliance ────────────────────────────────────────────────────
+ * • Chapter and topic NAMES are factual identifiers — not copyrightable
+ * • Source: CBSE Curriculum 2025-26 (cbseacademic.nic.in)
+ * • No NCERT textbook content, descriptions, or excerpts are displayed
+ * • Users are directed to ncert.nic.in for actual content
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 
 import React, { useState, useEffect } from 'react';
+import { getSubjects, getChapters, getTopics } from '../data/syllabusData';
 
-// Topic names only — factual, not copyrightable
-// Source: CBSE Curriculum 2025-26 (cbseacademic.nic.in)
-const SYLLABUS = {
-  'Class 9': {
-    Physics:   ['Motion', 'Force and Laws of Motion', 'Gravitation', 'Work and Energy', 'Sound'],
-    Chemistry: ['Matter in Our Surroundings', 'Is Matter Around Us Pure?', 'Atoms and Molecules', 'Structure of the Atom'],
-    Biology:   ['The Fundamental Unit of Life', 'Tissues', 'Diversity in Living Organisms', 'Why Do We Fall Ill?', 'Natural Resources'],
-    Mathematics: ['Number Systems', 'Polynomials', 'Coordinate Geometry', 'Linear Equations in Two Variables', "Introduction to Euclid's Geometry", 'Lines and Angles', 'Triangles', 'Quadrilaterals', 'Areas of Parallelograms and Triangles', 'Circles', 'Surface Areas and Volumes', 'Statistics', 'Probability'],
-    'Social Science': ['The French Revolution', 'Socialism in Europe and Russian Revolution', 'Nazism and the Rise of Hitler', 'Forest Society and Colonialism', 'Pastoralists in the Modern World', 'India – Size and Location', 'Physical Features of India', 'Drainage', 'Climate', 'Natural Vegetation and Wildlife', 'Population', 'What is Democracy?', 'Constitutional Design', 'Electoral Politics', 'Working of Institutions', 'Democratic Rights', 'The Story of Village Palampur', 'People as Resource', 'Poverty as a Challenge', 'Food Security in India'],
-    English: ['Beehive (Prose)', 'Beehive (Poetry)', 'Moments (Supplementary)', 'Grammar and Writing'],
-  },
-  'Class 10': {
-    Physics:   ['Light – Reflection and Refraction', 'Human Eye and the Colourful World', 'Electricity', 'Magnetic Effects of Electric Current', 'Sources of Energy'],
-    Chemistry: ['Chemical Reactions and Equations', 'Acids, Bases and Salts', 'Metals and Non-metals', 'Carbon and its Compounds', 'Periodic Classification of Elements'],
-    Biology:   ['Life Processes', 'Control and Coordination', 'How do Organisms Reproduce?', 'Heredity and Evolution', 'Our Environment', 'Management of Natural Resources'],
-    Mathematics: ['Real Numbers', 'Polynomials', 'Pair of Linear Equations in Two Variables', 'Quadratic Equations', 'Arithmetic Progressions', 'Triangles', 'Coordinate Geometry', 'Introduction to Trigonometry', 'Applications of Trigonometry', 'Circles', 'Areas Related to Circles', 'Surface Areas and Volumes', 'Statistics', 'Probability'],
-    'Social Science': ['The Rise of Nationalism in Europe', 'Nationalism in India', 'The Making of a Global World', 'The Age of Industrialisation', 'Print Culture and the Modern World', 'Resources and Development', 'Forest and Wildlife Resources', 'Water Resources', 'Agriculture', 'Minerals and Energy Resources', 'Manufacturing Industries', 'Lifelines of National Economy', 'Power Sharing', 'Federalism', 'Democracy and Diversity', 'Gender, Religion and Caste', 'Popular Struggles and Movements', 'Political Parties', 'Outcomes of Democracy', 'Challenges to Democracy', 'Development', 'Sectors of the Indian Economy', 'Money and Credit', 'Globalisation and the Indian Economy', 'Consumer Rights'],
-    English: ['First Flight (Prose)', 'First Flight (Poetry)', 'Footprints Without Feet', 'Grammar and Writing'],
-  },
-  'Class 11': {
-    Physics:   ['Physical World', 'Units and Measurements', 'Motion in a Straight Line', 'Motion in a Plane', 'Laws of Motion', 'Work, Energy and Power', 'System of Particles and Rotational Motion', 'Gravitation', 'Mechanical Properties of Solids', 'Mechanical Properties of Fluids', 'Thermal Properties of Matter', 'Thermodynamics', 'Kinetic Theory', 'Oscillations', 'Waves'],
-    Chemistry: ['Some Basic Concepts of Chemistry', 'Structure of Atom', 'Classification of Elements and Periodicity', 'Chemical Bonding and Molecular Structure', 'States of Matter', 'Thermodynamics', 'Equilibrium', 'Redox Reactions', 'Hydrogen', 'The s-Block Elements', 'The p-Block Elements', 'Organic Chemistry – Basic Principles', 'Hydrocarbons', 'Environmental Chemistry'],
-    Biology:   ['The Living World', 'Biological Classification', 'Plant Kingdom', 'Animal Kingdom', 'Morphology of Flowering Plants', 'Anatomy of Flowering Plants', 'Structural Organisation in Animals', 'Cell: The Unit of Life', 'Biomolecules', 'Cell Cycle and Cell Division', 'Transport in Plants', 'Mineral Nutrition', 'Photosynthesis in Higher Plants', 'Respiration in Plants', 'Plant Growth and Development', 'Digestion and Absorption', 'Breathing and Exchange of Gases', 'Body Fluids and Circulation', 'Excretory Products and their Elimination', 'Locomotion and Movement', 'Neural Control and Coordination', 'Chemical Coordination and Integration'],
-    Mathematics: ['Sets', 'Relations and Functions', 'Trigonometric Functions', 'Principle of Mathematical Induction', 'Complex Numbers and Quadratic Equations', 'Linear Inequalities', 'Permutations and Combinations', 'Binomial Theorem', 'Sequences and Series', 'Straight Lines', 'Conic Sections', 'Introduction to 3D Geometry', 'Limits and Derivatives', 'Statistics', 'Probability'],
-  },
-  'Class 12': {
-    Physics:   ['Electric Charges and Fields', 'Electrostatic Potential and Capacitance', 'Current Electricity', 'Moving Charges and Magnetism', 'Magnetism and Matter', 'Electromagnetic Induction', 'Alternating Current', 'Electromagnetic Waves', 'Ray Optics and Optical Instruments', 'Wave Optics', 'Dual Nature of Radiation and Matter', 'Atoms', 'Nuclei', 'Semiconductor Electronics'],
-    Chemistry: ['The Solid State', 'Solutions', 'Electrochemistry', 'Chemical Kinetics', 'Surface Chemistry', 'General Principles and Processes of Isolation of Elements', 'The p-Block Elements', 'The d- and f-Block Elements', 'Coordination Compounds', 'Haloalkanes and Haloarenes', 'Alcohols, Phenols and Ethers', 'Aldehydes, Ketones and Carboxylic Acids', 'Amines', 'Biomolecules', 'Polymers', 'Chemistry in Everyday Life'],
-    Biology:   ['Reproduction in Organisms', 'Sexual Reproduction in Flowering Plants', 'Human Reproduction', 'Reproductive Health', 'Principles of Inheritance and Variation', 'Molecular Basis of Inheritance', 'Evolution', 'Human Health and Disease', 'Strategies for Enhancement in Food Production', 'Microbes in Human Welfare', 'Biotechnology: Principles and Processes', 'Biotechnology and its Applications', 'Organisms and Populations', 'Ecosystem', 'Biodiversity and Conservation', 'Environmental Issues'],
-    Mathematics: ['Relations and Functions', 'Inverse Trigonometric Functions', 'Matrices', 'Determinants', 'Continuity and Differentiability', 'Applications of Derivatives', 'Integrals', 'Applications of Integrals', 'Differential Equations', 'Vector Algebra', 'Three Dimensional Geometry', 'Linear Programming', 'Probability'],
-  },
-};
-
+/* ── Subject accent colours ── */
 const SUBJECT_COLORS = {
-  Physics:          { accent: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.25)',  dot: '#60a5fa' },
-  Chemistry:        { accent: '#34d399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.25)',  dot: '#34d399' },
-  Biology:          { accent: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.25)', dot: '#a78bfa' },
-  Mathematics:      { accent: '#818cf8', bg: 'rgba(129,140,248,0.08)', border: 'rgba(129,140,248,0.25)', dot: '#818cf8' },
-  'Social Science': { accent: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.25)',  dot: '#fbbf24' },
-  English:          { accent: '#f472b6', bg: 'rgba(244,114,182,0.08)', border: 'rgba(244,114,182,0.25)', dot: '#f472b6' },
+  Physics:            { accent: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  border: 'rgba(96,165,250,0.22)',  dot: '#60a5fa'  },
+  Chemistry:          { accent: '#34d399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.22)',  dot: '#34d399'  },
+  Biology:            { accent: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.22)', dot: '#a78bfa'  },
+  Mathematics:        { accent: '#818cf8', bg: 'rgba(129,140,248,0.08)', border: 'rgba(129,140,248,0.22)', dot: '#818cf8'  },
+  Science:            { accent: '#34d399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.22)',  dot: '#34d399'  },
+  'Social Science':   { accent: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.22)',  dot: '#fbbf24'  },
+  English:            { accent: '#f472b6', bg: 'rgba(244,114,182,0.08)', border: 'rgba(244,114,182,0.22)', dot: '#f472b6'  },
+  Hindi:              { accent: '#fb923c', bg: 'rgba(251,146,60,0.08)',  border: 'rgba(251,146,60,0.22)',  dot: '#fb923c'  },
+  Economics:          { accent: '#fbbf24', bg: 'rgba(251,191,36,0.08)',  border: 'rgba(251,191,36,0.22)',  dot: '#fbbf24'  },
+  'Computer Science': { accent: '#22d3ee', bg: 'rgba(34,211,238,0.08)',  border: 'rgba(34,211,238,0.22)',  dot: '#22d3ee'  },
 };
+const DEF_COLOR = { accent: '#818cf8', bg: 'rgba(129,140,248,0.08)', border: 'rgba(129,140,248,0.22)', dot: '#818cf8' };
+const getColor = s => SUBJECT_COLORS[s] || DEF_COLOR;
 
-/* ─── Disclaimer Overlay ──────────────────────────────────────────────────── */
+/* ── Disclaimer overlay ── */
 function DisclaimerOverlay({ onAccept }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '1rem',
-      background: 'rgba(5,9,21,0.85)',
-      backdropFilter: 'blur(12px)',
-      animation: 'revealUp .3s cubic-bezier(.22,1,.36,1) both',
+      background: 'rgba(5,9,21,0.88)',
+      backdropFilter: 'blur(14px)',
     }}>
       <div style={{
-        background: 'var(--surface, #0d1425)',
-        border: '1px solid var(--border, rgba(99,102,241,0.2))',
-        borderRadius: 20, padding: '32px 28px',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 20, padding: '28px 22px',
         maxWidth: 480, width: '100%',
-        animation: 'revealUp .4s cubic-bezier(.22,1,.36,1) both',
+        maxHeight: '90vh', overflowY: 'auto',
+        animation: 'revealUp .35s cubic-bezier(.22,1,.36,1) both',
       }}>
         <div style={{
           width: 48, height: 48, borderRadius: 14,
-          background: 'rgba(245,158,11,0.12)',
+          background: 'rgba(245,158,11,0.1)',
           border: '1px solid rgba(245,158,11,0.25)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 22, margin: '0 auto 20px',
+          fontSize: 22, margin: '0 auto 16px',
         }}>⚖️</div>
 
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 700, color: 'var(--text)', textAlign: 'center', marginBottom: 6 }}>
-          Copyright Notice
-        </h2>
-        <p style={{ fontSize: 12.5, color: 'var(--muted)', textAlign: 'center', marginBottom: 20 }}>
+        <h2 style={{
+          fontFamily: 'Syne, sans-serif', fontSize: 18, fontWeight: 700,
+          color: 'var(--text)', textAlign: 'center', marginBottom: 6,
+        }}>Copyright Notice</h2>
+        <p style={{ fontSize: 12, color: 'var(--muted)', textAlign: 'center', marginBottom: 18 }}>
           Please read before accessing the syllabus browser
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 }}>
           {[
-            { icon: '✓', col: '#10b981', text: 'Topic names shown here (e.g. "Gravitation") are factual identifiers — not copyrightable.' },
-            { icon: '✓', col: '#10b981', text: 'Based on CBSE Curriculum 2025-26. Full credit to CBSE / cbseacademic.nic.in.' },
-            { icon: '!',  col: '#fbbf24', text: 'We do NOT host NCERT textbook content. Official free PDFs → ncert.nic.in' },
-            { icon: '!',  col: '#fbbf24', text: 'For full chapter content, always refer to the official CBSE / NCERT websites.' },
+            { icon: '✓', col: '#10b981', text: 'Chapter and topic names are factual identifiers — they are not copyrightable.' },
+            { icon: '✓', col: '#10b981', text: 'Based on CBSE Curriculum 2025-26. Full credit to CBSE (cbseacademic.nic.in).' },
+            { icon: '!', col: '#fbbf24', text: 'We do NOT display NCERT textbook content, descriptions, or excerpts of any kind.' },
+            { icon: '!', col: '#fbbf24', text: 'For full chapter content, visit ncert.nic.in — all PDFs are free and official.' },
           ].map((item, i) => (
-            <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 13px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
+            <div key={i} style={{
+              display: 'flex', gap: 10, padding: '9px 12px',
+              borderRadius: 10, background: 'rgba(255,255,255,0.03)',
+              border: '1px solid var(--border)',
+            }}>
               <span style={{ color: item.col, fontWeight: 700, flexShrink: 0, fontSize: 13 }}>{item.icon}</span>
-              <span style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.5 }}>{item.text}</span>
+              <span style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.55 }}>{item.text}</span>
             </div>
           ))}
         </div>
 
-        <p style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', marginBottom: 18, fontFamily: 'monospace' }}>
+        <p style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', marginBottom: 16, fontFamily: 'monospace' }}>
           Source: cbseacademic.nic.in
         </p>
 
@@ -108,99 +96,279 @@ function DisclaimerOverlay({ onAccept }) {
   );
 }
 
-/* ─── Main SyllabusSection ────────────────────────────────────────────────── */
-export default function SyllabusSection() {
-  const [accepted, setAccepted]   = useState(false);
-  const [selClass, setSelClass]   = useState('Class 10');
-  const [selSubject, setSelSubject] = useState(null);
-  const [search, setSearch]       = useState('');
+/* ── Individual chapter card with expandable topics ── */
+function ChapterCard({ cls, subject, chapter, chapterIndex, color, search, forceOpen }) {
+  const topics = getTopics(cls, subject, chapter);
+  const [open, setOpen] = useState(false);
 
-  const classes  = Object.keys(SYLLABUS);
-  const subjects = Object.keys(SYLLABUS[selClass] || {});
-
+  // Auto-open when search matches something inside, or forceOpen is set
   useEffect(() => {
-    if (subjects.length > 0) setSelSubject(subjects[0]);
-  }, [selClass]);
+    if (forceOpen) { setOpen(true); return; }
+    if (!forceOpen && !search) { setOpen(false); return; }
+    if (search) {
+      const hasMatch = topics.some(t => t.toLowerCase().includes(search.toLowerCase()));
+      setOpen(hasMatch);
+    }
+  }, [search, forceOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const topics = selSubject ? SYLLABUS[selClass][selSubject] : [];
-  const filtered = search
+  const visibleTopics = search
     ? topics.filter(t => t.toLowerCase().includes(search.toLowerCase()))
     : topics;
 
-  const colors = SUBJECT_COLORS[selSubject] || SUBJECT_COLORS['Physics'];
+  // Hide card entirely if searching and nothing matches
+  if (search &&
+      !chapter.toLowerCase().includes(search.toLowerCase()) &&
+      visibleTopics.length === 0) {
+    return null;
+  }
+
+  const chapterMatchesSearch = search && chapter.toLowerCase().includes(search.toLowerCase());
+
+  return (
+    <div style={{
+      background: 'var(--surface)',
+      border: `1px solid ${open ? color.border : 'var(--border)'}`,
+      borderRadius: 13,
+      overflow: 'hidden',
+      transition: 'border-color .2s, box-shadow .2s',
+      boxShadow: open ? `0 0 0 1px ${color.border}20` : 'none',
+    }}>
+
+      {/* ── Header row ── */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', gap: 10,
+          padding: '12px 14px', background: 'transparent',
+          border: 'none', cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+          {/* Number badge */}
+          <span style={{
+            width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+            background: open ? color.bg : 'rgba(255,255,255,0.05)',
+            border: `1px solid ${open ? color.border : 'var(--border)'}`,
+            color: open ? color.accent : 'var(--muted)',
+            fontSize: 10, fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: 'DM Sans, sans-serif',
+            transition: 'all .2s',
+          }}>
+            {String(chapterIndex + 1).padStart(2, '0')}
+          </span>
+
+          {/* Chapter name */}
+          <span style={{
+            fontSize: 13, fontWeight: 600, lineHeight: 1.35,
+            color: chapterMatchesSearch ? color.accent : open ? 'var(--text)' : '#94a3b8',
+            transition: 'color .2s',
+          }}>
+            {chapter}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+          <span style={{
+            padding: '2px 8px', borderRadius: 20,
+            fontSize: 10.5, fontWeight: 500,
+            background: 'rgba(255,255,255,0.04)',
+            color: 'var(--muted)',
+          }}>
+            {topics.length} topic{topics.length !== 1 ? 's' : ''}
+          </span>
+          <span style={{
+            color: 'var(--muted)', fontSize: 10,
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform .22s',
+            display: 'inline-block',
+          }}>▾</span>
+        </div>
+      </button>
+
+      {/* ── Topics panel ── */}
+      {open && (
+        <div style={{
+          padding: '2px 14px 14px',
+          borderTop: '1px solid var(--border)',
+          animation: 'revealUp .18s cubic-bezier(.22,1,.36,1) both',
+        }}>
+          {/* Topics label */}
+          <div style={{
+            fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase',
+            letterSpacing: '.08em', color: 'var(--muted)',
+            margin: '10px 0 8px',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <span style={{
+              width: 3, height: 10,
+              background: color.accent,
+              borderRadius: 2, display: 'inline-block',
+            }} />
+            Key topics
+            <span style={{
+              fontSize: 9, fontWeight: 400, color: 'var(--muted)',
+              textTransform: 'none', letterSpacing: 0,
+            }}>
+              · names only · no NCERT content
+            </span>
+          </div>
+
+          {/* Topic pills */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {visibleTopics.map((topic, i) => {
+              const highlighted = search && topic.toLowerCase().includes(search.toLowerCase());
+              return (
+                <span key={i} style={{
+                  padding: '4px 10px', borderRadius: 20,
+                  fontSize: 11.5, fontWeight: 500,
+                  background: highlighted ? color.bg : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${highlighted ? color.border : 'var(--border)'}`,
+                  color: highlighted ? color.accent : '#64748b',
+                  transition: 'all .15s',
+                }}>
+                  {topic}
+                </span>
+              );
+            })}
+          </div>
+
+          {/* NCERT link per chapter */}
+          <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+            <a
+              href="https://ncert.nic.in/textbook.php"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontSize: 11, color: 'var(--accent2)',
+                textDecoration: 'none',
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+              }}
+            >
+              📥 Read full chapter on ncert.nic.in ↗
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Main export ── */
+export default function SyllabusSection() {
+  const [accepted,   setAccepted]  = useState(false);
+  const [selClass,   setSelClass]  = useState('10');
+  const [selSubject, setSelSubject]= useState(null);
+  const [search,     setSearch]    = useState('');
+  const [expandAll,  setExpandAll] = useState(false);
+
+  const subjects = getSubjects(selClass);
+
+  useEffect(() => {
+    if (subjects.length > 0) setSelSubject(subjects[0]);
+    setSearch('');
+    setExpandAll(false);
+  }, [selClass]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const chapters    = selSubject ? getChapters(selClass, selSubject) : [];
+  const color       = getColor(selSubject);
+  const totalTopics = chapters.reduce((n, ch) => n + getTopics(selClass, selSubject, ch).length, 0);
+
+  // Filter chapters by search
+  const visibleChapters = search
+    ? chapters.filter(ch => {
+        const topics = getTopics(selClass, selSubject, ch);
+        return ch.toLowerCase().includes(search.toLowerCase()) ||
+               topics.some(t => t.toLowerCase().includes(search.toLowerCase()));
+      })
+    : chapters;
 
   return (
     <>
       {!accepted && <DisclaimerOverlay onAccept={() => setAccepted(true)} />}
 
-      <div style={{ filter: !accepted ? 'blur(4px)' : 'none', pointerEvents: !accepted ? 'none' : 'auto', transition: 'filter .3s' }}>
+      <div style={{
+        filter: !accepted ? 'blur(4px)' : 'none',
+        pointerEvents: !accepted ? 'none' : 'auto',
+        transition: 'filter .3s',
+        paddingBottom: 80,
+      }}>
 
-        {/* Header */}
-        <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800, color: 'var(--text)', marginBottom: 6 }}>
+        {/* ── Header ── */}
+        <div style={{ marginBottom: 20 }}>
+          <h1 style={{
+            fontFamily: 'Syne, sans-serif',
+            fontSize: 'clamp(20px,5vw,26px)',
+            fontWeight: 800, color: 'var(--text)', marginBottom: 6,
+          }}>
             CBSE Syllabus Browser
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <p style={{ fontSize: 13.5, color: 'var(--muted)' }}>
-              Based on CBSE Curriculum 2025-26 ·{' '}
-              <a href="https://cbseacademic.nic.in/curriculum_2025-26.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'none' }}>
-                Official syllabus ↗
-              </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <p style={{ fontSize: 13, color: 'var(--muted)' }}>
+              CBSE 2025-26 ·{' '}
+              <a href="https://cbseacademic.nic.in/curriculum_2025-26.html"
+                target="_blank" rel="noopener noreferrer"
+                style={{ color: 'var(--accent2)', textDecoration: 'none' }}>Official ↗</a>
               {' '}·{' '}
-              <a href="https://ncert.nic.in/textbook/textbook.htm" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'none' }}>
-                Free NCERT PDFs ↗
-              </a>
+              <a href="https://ncert.nic.in/textbook.php"
+                target="_blank" rel="noopener noreferrer"
+                style={{ color: 'var(--accent2)', textDecoration: 'none' }}>Free PDFs ↗</a>
             </p>
             <span style={{
-              padding: '3px 11px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-              background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)',
-              color: '#fbbf24',
+              padding: '2px 10px', borderRadius: 20, fontSize: 10.5, fontWeight: 600,
+              background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)',
+              color: '#fbbf24', whiteSpace: 'nowrap',
             }}>
-              ⚖️ Topic names only · NCERT content not hosted
+              ⚖️ Chapter &amp; topic names only
             </span>
           </div>
         </div>
 
-        {/* Class tabs */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-          {classes.map(cls => (
-            <button
-              key={cls}
-              onClick={() => { setSelClass(cls); setSearch(''); }}
-              style={{
-                padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                fontFamily: 'DM Sans, sans-serif', fontSize: 13.5, fontWeight: 500,
-                background: selClass === cls ? 'var(--accent)' : 'var(--surface)',
-                color: selClass === cls ? '#fff' : 'var(--muted)',
-                border: `1px solid ${selClass === cls ? 'var(--accent)' : 'var(--border)'}`,
-                boxShadow: selClass === cls ? '0 4px 14px rgba(99,102,241,0.3)' : 'none',
-                transition: 'all .2s',
-              }}
-            >{cls}</button>
+        {/* ── Class tabs ── */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+          {['9', '10', '11', '12'].map(cls => (
+            <button key={cls} onClick={() => setSelClass(cls)} style={{
+              padding: '7px 18px', borderRadius: 10, cursor: 'pointer',
+              border: `1px solid ${selClass === cls ? 'var(--accent)' : 'var(--border)'}`,
+              background: selClass === cls ? 'var(--accent)' : 'var(--surface)',
+              color: selClass === cls ? '#fff' : 'var(--muted)',
+              fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 500,
+              boxShadow: selClass === cls ? '0 4px 14px rgba(99,102,241,0.3)' : 'none',
+              transition: 'all .18s',
+            }}>
+              Class {cls}
+            </button>
           ))}
         </div>
 
-        {/* Layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 16 }}>
+        {/* ── Grid: subject sidebar + chapters ── */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '190px 1fr',
+          gap: 16, alignItems: 'start',
+        }}
+          className="syllabus-layout"
+        >
 
-          {/* Subject list */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {/* Subjects */}
+          <div className="syllabus-subjects" style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {subjects.map(subj => {
-              const c = SUBJECT_COLORS[subj] || SUBJECT_COLORS['Physics'];
+              const c = getColor(subj);
               const active = selSubject === subj;
               return (
-                <button
-                  key={subj}
-                  onClick={() => { setSelSubject(subj); setSearch(''); }}
+                <button key={subj}
+                  onClick={() => { setSelSubject(subj); setSearch(''); setExpandAll(false); }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 9,
-                    padding: '10px 13px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                    fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: active ? 600 : 500,
-                    textAlign: 'left',
-                    background: active ? c.bg : 'var(--surface)',
+                    padding: '9px 12px', borderRadius: 10, textAlign: 'left',
                     border: `1px solid ${active ? c.border : 'var(--border)'}`,
+                    background: active ? c.bg : 'var(--surface)',
                     color: active ? c.accent : 'var(--muted)',
-                    transition: 'all .18s',
+                    fontFamily: 'DM Sans, sans-serif', fontSize: 13,
+                    fontWeight: active ? 600 : 500,
+                    cursor: 'pointer', transition: 'all .18s',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   <span style={{ width: 7, height: 7, borderRadius: '50%', background: c.dot, flexShrink: 0 }} />
@@ -210,83 +378,155 @@ export default function SyllabusSection() {
             })}
           </div>
 
-          {/* Topics panel */}
-          <div className="p-card" style={{ padding: 20 }}>
-            {/* Panel header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Chapters + Topics */}
+          <div>
+
+            {/* Toolbar */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginBottom: 12, gap: 10, flexWrap: 'wrap',
+            }}>
+              {/* Badge + count */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{
-                  padding: '3px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-                  background: colors.bg, border: `1px solid ${colors.border}`, color: colors.accent,
+                  padding: '4px 13px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+                  background: color.bg, border: `1px solid ${color.border}`, color: color.accent,
                 }}>
                   {selSubject}
                 </span>
-                <span style={{ fontSize: 12, color: 'var(--muted)' }}>{filtered.length} topics</span>
+                <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+                  {chapters.length} chapters · {totalTopics} topics
+                </span>
               </div>
-              {/* Search */}
-              <div style={{ position: 'relative' }}>
-                <svg style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }} width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text" value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="Search topics…"
-                  style={{
-                    paddingLeft: 30, paddingRight: 12, paddingTop: 7, paddingBottom: 7,
-                    borderRadius: 9, border: '1px solid var(--border)',
-                    background: 'rgba(255,255,255,0.04)', color: 'var(--text)',
-                    fontSize: 12.5, fontFamily: 'DM Sans, sans-serif', outline: 'none', width: 180,
-                  }}
-                  onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                />
+
+              {/* Controls */}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {/* Search */}
+                <div style={{ position: 'relative' }}>
+                  <svg style={{
+                    position: 'absolute', left: 9, top: '50%',
+                    transform: 'translateY(-50%)', color: 'var(--muted)', pointerEvents: 'none',
+                  }} width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text" value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Search chapters, topics…"
+                    style={{
+                      paddingLeft: 28, paddingRight: search ? 28 : 10,
+                      paddingTop: 7, paddingBottom: 7,
+                      borderRadius: 9, border: '1px solid var(--border)',
+                      background: 'rgba(255,255,255,0.04)',
+                      color: 'var(--text)', fontSize: 12.5,
+                      fontFamily: 'DM Sans, sans-serif',
+                      outline: 'none', width: 185,
+                      transition: 'border-color .2s',
+                    }}
+                    onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                  />
+                  {search && (
+                    <button onClick={() => setSearch('')} style={{
+                      position: 'absolute', right: 7, top: '50%',
+                      transform: 'translateY(-50%)', background: 'none',
+                      border: 'none', color: 'var(--muted)', cursor: 'pointer',
+                      fontSize: 14, padding: 0, lineHeight: 1,
+                    }}>×</button>
+                  )}
+                </div>
+
+                {/* Expand / collapse all */}
+                <button
+                  onClick={() => setExpandAll(v => !v)}
+                  className="btn-secondary"
+                  style={{ fontSize: 11.5, padding: '6px 12px', whiteSpace: 'nowrap' }}
+                >
+                  {expandAll ? '⊖ Collapse' : '⊕ Expand all'}
+                </button>
               </div>
             </div>
 
-            {/* Topics grid */}
-            {filtered.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {filtered.map((topic, idx) => (
-                  <div key={idx} style={{
-                    display: 'flex', alignItems: 'flex-start', gap: 10,
-                    padding: '10px 13px', borderRadius: 9,
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid var(--border)',
-                    transition: 'border-color .15s',
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = colors.border}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                  >
-                    <span style={{ fontSize: 10.5, color: 'var(--muted)', fontFamily: 'monospace', flexShrink: 0, marginTop: 1 }}>
-                      {String(idx + 1).padStart(2, '0')}
-                    </span>
-                    <span style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.4, fontWeight: 500 }}>{topic}</span>
-                  </div>
+            {/* Search result notice */}
+            {search && (
+              <div style={{
+                fontSize: 12, color: 'var(--muted)', marginBottom: 10,
+                padding: '6px 10px', background: 'rgba(99,102,241,0.06)',
+                border: '1px solid rgba(99,102,241,0.15)', borderRadius: 8,
+              }}>
+                🔍 {visibleChapters.length === 0
+                  ? `No results for "${search}"`
+                  : `${visibleChapters.length} chapter${visibleChapters.length !== 1 ? 's' : ''} match "${search}"`
+                }
+              </div>
+            )}
+
+            {/* Chapter cards */}
+            {visibleChapters.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                {visibleChapters.map(chapter => (
+                  <ChapterCard
+                    key={chapter}
+                    cls={selClass}
+                    subject={selSubject}
+                    chapter={chapter}
+                    chapterIndex={chapters.indexOf(chapter)}
+                    color={color}
+                    search={search}
+                    forceOpen={expandAll}
+                  />
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--muted)' }}>
-                <div style={{ fontSize: 28, marginBottom: 8 }}>🔍</div>
-                <div style={{ fontSize: 13 }}>No topics match "{search}"</div>
+              <div style={{
+                textAlign: 'center', padding: '40px 20px',
+                border: '1.5px dashed var(--border)', borderRadius: 16,
+                color: 'var(--muted)',
+              }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
+                <div style={{ fontSize: 14 }}>No chapters or topics match "{search}"</div>
+                <button onClick={() => setSearch('')} style={{
+                  marginTop: 12, background: 'none',
+                  border: '1px solid var(--border)', borderRadius: 8,
+                  padding: '6px 14px', color: 'var(--muted)',
+                  fontSize: 12, cursor: 'pointer',
+                  fontFamily: 'DM Sans, sans-serif',
+                }}>Clear search</button>
               </div>
             )}
 
             {/* Footer */}
             <div style={{
-              marginTop: 16, paddingTop: 14,
+              marginTop: 16, paddingTop: 12,
               borderTop: '1px solid var(--border)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              fontSize: 11, color: 'var(--muted)', flexWrap: 'wrap', gap: 8,
+              fontSize: 11, color: 'var(--muted)', flexWrap: 'wrap', gap: 6,
             }}>
-              <span>📌 Topics based on CBSE Curriculum 2025-26 · cbseacademic.nic.in</span>
+              <span>📌 CBSE 2025-26 · Chapter &amp; topic names only · No NCERT content hosted</span>
               <div style={{ display: 'flex', gap: 14 }}>
-                <a href="https://ncert.nic.in/textbook.php" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent2)', fontSize: 11 }}>📥 NCERT PDFs ↗</a>
-                <a href="https://cbseacademic.nic.in/curriculum_2025.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent2)', fontSize: 11 }}>Official CBSE ↗</a>
+                <a href="https://ncert.nic.in/textbook.php" target="_blank" rel="noopener noreferrer"
+                  style={{ color: 'var(--accent2)', fontSize: 11 }}>📥 NCERT PDFs ↗</a>
+                <a href="https://cbseacademic.nic.in/curriculum_2025-26.html" target="_blank" rel="noopener noreferrer"
+                  style={{ color: 'var(--accent2)', fontSize: 11 }}>CBSE Official ↗</a>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .syllabus-layout {
+            grid-template-columns: 1fr !important;
+          }
+          .syllabus-subjects {
+            flex-direction: row !important;
+            flex-wrap: wrap;
+            gap: 5px !important;
+          }
+        }
+      `}</style>
     </>
   );
 }

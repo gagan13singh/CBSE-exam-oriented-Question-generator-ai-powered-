@@ -59,7 +59,11 @@ app.use('/api/v1/questions',     questionsRouter);   // handles /generate
 app.use('/api/v1/questions',     similarRouter);     // handles /similar + /similar-from-image
 app.use('/api/v1/paper',         paperRouter);
 app.use('/api/v1/grade',         graderRouter);
-app.use('/api/v1/upload',        uploadRouter);      // handles /pdf
+app.use('/api/v1/upload',        uploadRouter);  
+// Combine both question routers under the same prefix
+questionsRouter.use('/', similarRouter);           // ← add similar routes INTO questions router
+app.use('/api/v1/questions', questionsRouter);
+// handles /pdf
 
 // ── Legacy aliases ────────────────────────────────────────────────────────────
 app.post('/generate-questions', (req, res, next) => { req.url = '/generate'; questionsRouter(req, res, next); });
@@ -96,3 +100,10 @@ app.listen(PORT, () => {
     console.log('    POST /api/v1/upload/pdf');
     console.log('========================================\n');
 });
+// Keep-alive ping — prevents Railway/Render from sleeping
+if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
+    setInterval(() => {
+        fetch(`${process.env.RENDER_EXTERNAL_URL}/api/health`)
+            .catch(() => {}); // silent — just keeping it warm
+    }, 10 * 60 * 1000); // ping every 10 minutes
+}
