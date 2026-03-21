@@ -88,7 +88,7 @@ function ScientiaStrip({ context = 'default', chapter = '', subject = '' }) {
 function App() {
   const health     = useHealth();
   const addSession = useProgressStore(s => s.addSession);
-  const { isGuest, incrementGuestUsage } = useAuth();
+  const { isGuest, isLoggedIn, incrementGuestUsage } = useAuth();
 
   // ── Check if URL is /login on first load ──────────────────────────────────
   const [appMode, setAppMode] = useState(() => {
@@ -337,7 +337,7 @@ function App() {
         {/* Right side — model badge + login button */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <ModelBadge health={health} />
-          {isGuest && (
+          {!isLoggedIn && (
             <button
               onClick={() => setAppMode('login')}
               style={{
