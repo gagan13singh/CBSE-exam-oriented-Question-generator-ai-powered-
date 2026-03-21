@@ -23,9 +23,11 @@ const syllabusRouter  = require('./routes/syllabus');
 const statusRouter    = require('./routes/status');
 const uploadRouter    = require('./routes/upload');
 const similarRouter   = require('./routes/similar');
-const doubtRouter     = require('./routes/doubt');   // ← Doubt Engine
+const doubtRouter     = require('./routes/doubt');
+const helmet          = require('helmet');
 
 const app  = express();
+app.use(helmet());
 const PORT = process.env.PORT || 3000;
 
 // ── Ensure uploads/tmp directory exists ──────────────────────────────────────

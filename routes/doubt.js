@@ -89,7 +89,7 @@ router.post('/', gradeLimiter, async (req, res, next) => {
             studentClass,
             questionText : String(questionText).substring(0, 800),
             history,
-            doubt        : String(doubt).trim(),
+            doubt        : String(doubt).trim().substring(0, 500),
         });
 
         // ── Call LLM (plain text mode) ────────────────────────────────────────

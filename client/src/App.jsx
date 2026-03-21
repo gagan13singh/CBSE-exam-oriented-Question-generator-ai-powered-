@@ -1,13 +1,11 @@
 /**
  * client/src/App.jsx
- * UPDATED: Scientia ecosystem integration
- * — URL param deep-linking (?class=11&subject=Physics&chapter=Gravitation)
- * — Scientia brand badge in nav (desktop)
- * — Contextual CTA strip after question generated & after practice result
- * — Updated footer with ecosystem branding
- * All existing logic UNCHANGED
+ * UPDATED: Supabase SSO + Guest Mode + Login Route
  */
 import React, { useState, useEffect } from 'react';
+import GuestGate from './components/GuestGate';
+import { useAuth } from './context/AuthContext';
+import LoginPage from './pages/LoginPage';
 import QuestionForm from './components/QuestionForm';
 import QuestionCard from './components/QuestionCard';
 import LoadingFact from './components/LoadingFact';
@@ -27,7 +25,7 @@ import DoubtPanel from './components/DoubtPanel';
 const SCIENTIA_URL = 'https://scientia-lms.vercel.app';
 
 /* ─────────────────────────────────────────────────────────────
-   Scientia CTA strip — shown in context, never as an ad
+   Scientia CTA strip
    ───────────────────────────────────────────────────────────── */
 function ScientiaStrip({ context = 'default', chapter = '', subject = '' }) {
   const msg = {
@@ -90,8 +88,13 @@ function ScientiaStrip({ context = 'default', chapter = '', subject = '' }) {
 function App() {
   const health     = useHealth();
   const addSession = useProgressStore(s => s.addSession);
+  const { isGuest, incrementGuestUsage } = useAuth();
 
-  const [appMode, setAppMode] = useState('generator');
+  // ── Check if URL is /login on first load ──────────────────────────────────
+  const [appMode, setAppMode] = useState(() => {
+    if (window.location.pathname === '/login') return 'login';
+    return 'generator';
+  });
 
   // Generator
   const [questionData,         setQuestionData]         = useState(null);
@@ -103,7 +106,7 @@ function App() {
   const [animateQ1,            setAnimateQ1]            = useState(false);
   const [lastGenMeta,          setLastGenMeta]          = useState(null);
   const [showUpload,           setShowUpload]           = useState(false);
-  const [lastFormData, setLastFormData] = useState(null)
+  const [lastFormData,         setLastFormData]         = useState(null);
 
   // Practice
   const [practiceState,      setPracticeState]      = useState('config');
@@ -111,8 +114,7 @@ function App() {
   const [practiceResult,     setPracticeResult]     = useState(null);
   const [lastPracticeConfig, setLastPracticeConfig] = useState(null);
 
-  // ── Deep-link: ?class=11&subject=Physics&chapter=Gravitation
-  // Scientia can link here and pre-fill the generator
+  // ── Deep-link: ?class=11&subject=Physics&chapter=Gravitation ─────────────
   useEffect(() => {
     const params  = new URLSearchParams(window.location.search);
     const cls     = params.get('class');
@@ -127,10 +129,19 @@ function App() {
     }
   }, []);
 
-  // ── All existing handlers (UNCHANGED) ──
+  // ── Keep URL in sync with appMode ────────────────────────────────────────
+  useEffect(() => {
+    if (appMode === 'login') {
+      window.history.pushState({}, '', '/login');
+    } else if (window.location.pathname === '/login') {
+      window.history.pushState({}, '', '/');
+    }
+  }, [appMode]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
 
   const generateQuestion = async (formData) => {
-    setLastFormData(formData); 
+    setLastFormData(formData);
     setLoading(true);
     setLoadingContext({ class: formData.class, subject: formData.subject });
     setError('');
@@ -152,6 +163,10 @@ function App() {
       setQuestionMeta(data.meta);
       setLastGenMeta({ chapter: formData.chapter, subject: formData.subject });
       setAnimateQ1(true);
+
+      // ── Track guest usage ──────────────────────────────────────────────
+      if (isGuest) await incrementGuestUsage();
+
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -233,15 +248,21 @@ function App() {
   const currentQ  = questions[currentQuestionIndex];
 
   const navItems = [
-    { mode: 'generator', label: '⚡ Generator', icon: '⚡', shortLabel: 'Gen'     },
-    { mode: 'practice',  label: '📝 Practice',  icon: '📝', shortLabel: 'Test'    },
-    { mode: 'syllabus',  label: '📚 Syllabus',  icon: '📚', shortLabel: 'Syllabus'},
-    { mode: 'dashboard', label: '📊 Dashboard', icon: '📊', shortLabel: 'Stats'   },
-    { mode: 'analytics', label: '📈 Analytics', icon: '📈', shortLabel: 'Charts'  },
+    { mode: 'generator', label: '⚡ Generator', icon: '⚡', shortLabel: 'Gen'      },
+    { mode: 'practice',  label: '📝 Practice',  icon: '📝', shortLabel: 'Test'     },
+    { mode: 'syllabus',  label: '📚 Syllabus',  icon: '📚', shortLabel: 'Syllabus' },
+    { mode: 'dashboard', label: '📊 Dashboard', icon: '📊', shortLabel: 'Stats'    },
+    { mode: 'analytics', label: '📈 Analytics', icon: '📈', shortLabel: 'Charts'   },
   ];
 
   const isFullWidth = ['dashboard', 'analytics', 'syllabus'].includes(appMode);
 
+  // ── LOGIN PAGE — full screen, no nav ─────────────────────────────────────
+  if (appMode === 'login') {
+    return <LoginPage onBack={() => setAppMode('generator')} onSuccess={() => setAppMode('generator')} />;
+  }
+
+  // ── MAIN APP ──────────────────────────────────────────────────────────────
   return (
     <div className="app-wrapper">
 
@@ -264,7 +285,6 @@ function App() {
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
           }}>Vidyastra</span>
 
-          {/* Scientia badge — desktop only, subtle */}
           <a
             href={SCIENTIA_URL}
             target="_blank"
@@ -314,8 +334,28 @@ function App() {
           ))}
         </div>
 
-        <div style={{ flexShrink: 0 }}>
+        {/* Right side — model badge + login button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <ModelBadge health={health} />
+          {isGuest && (
+            <button
+              onClick={() => setAppMode('login')}
+              style={{
+                padding: '6px 14px', borderRadius: 9,
+                background: 'rgba(99,102,241,0.12)',
+                border: '1px solid rgba(99,102,241,0.3)',
+                color: 'var(--accent2)',
+                fontSize: 12, fontWeight: 600,
+                fontFamily: 'DM Sans, sans-serif',
+                cursor: 'pointer', transition: 'all .18s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,0.22)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(99,102,241,0.12)'}
+            >
+              Login
+            </button>
+          )}
         </div>
       </nav>
 
@@ -407,134 +447,135 @@ function App() {
           </div>
         )}
 
-        {/* ── GENERATOR ── */}
+        {/* ── GENERATOR ── wrapped in GuestGate ── */}
         {!loading && appMode === 'generator' && (
-          <div style={{ animation: 'revealUp .5s cubic-bezier(.22,1,.36,1) both' }}>
+          <GuestGate>
+            <div style={{ animation: 'revealUp .5s cubic-bezier(.22,1,.36,1) both' }}>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-              <button
-                onClick={() => setShowUpload(v => !v)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 16px', borderRadius: 10,
-                  border: `1px solid ${showUpload ? 'rgba(99,102,241,0.5)' : 'var(--border)'}`,
-                  background: showUpload ? 'rgba(99,102,241,0.1)' : 'transparent',
-                  color: showUpload ? 'var(--accent2)' : 'var(--muted)',
-                  fontSize: 13, fontWeight: 500, fontFamily: 'DM Sans, sans-serif',
-                  cursor: 'pointer', transition: 'all .2s',
-                }}
-              >
-                <span>⬆️</span>
-                <span className="hide-mobile">
-                  {showUpload ? 'Hide Upload Panel' : 'Upload PDF / Question'}
-                </span>
-              </button>
-            </div>
-
-            {showUpload && (
-              <div style={{ marginBottom: 24, animation: 'revealUp .3s cubic-bezier(.22,1,.36,1) both' }}>
-                <UploadPanel />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+                <button
+                  onClick={() => setShowUpload(v => !v)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '8px 16px', borderRadius: 10,
+                    border: `1px solid ${showUpload ? 'rgba(99,102,241,0.5)' : 'var(--border)'}`,
+                    background: showUpload ? 'rgba(99,102,241,0.1)' : 'transparent',
+                    color: showUpload ? 'var(--accent2)' : 'var(--muted)',
+                    fontSize: 13, fontWeight: 500, fontFamily: 'DM Sans, sans-serif',
+                    cursor: 'pointer', transition: 'all .2s',
+                  }}
+                >
+                  <span>⬆️</span>
+                  <span className="hide-mobile">
+                    {showUpload ? 'Hide Upload Panel' : 'Upload PDF / Question'}
+                  </span>
+                </button>
               </div>
-            )}
 
-            <div className="generator-layout">
-
-              {/* Form card */}
-              <div className="generator-form-sticky" style={{ position: 'sticky', top: 80 }}>
-                <div className="p-card" style={{ padding: 24 }}>
-                  <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 4, color: 'var(--text)' }}>
-                    Configure question
-                  </div>
-                  <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>
-                    Select subject and topic
-                  </div>
-                  <QuestionForm onSubmit={generateQuestion} isLoading={loading} />
+              {showUpload && (
+                <div style={{ marginBottom: 24, animation: 'revealUp .3s cubic-bezier(.22,1,.36,1) both' }}>
+                  <UploadPanel />
                 </div>
-              </div>
+              )}
 
-              {/* Results */}
-              <div>
-                {!questionData && !error && (
-                  <div style={{
-                    border: '1.5px dashed rgba(99,102,241,0.2)',
-                    borderRadius: 20, padding: '48px 28px', textAlign: 'center',
-                  }}>
-                    <div style={{ fontSize: 44, marginBottom: 14 }}>🚀</div>
-                    <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 20, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>
-                      Ready when you are
+              <div className="generator-layout">
+
+                {/* Form card */}
+                <div className="generator-form-sticky" style={{ position: 'sticky', top: 80 }}>
+                  <div className="p-card" style={{ padding: 24 }}>
+                    <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 4, color: 'var(--text)' }}>
+                      Configure question
                     </div>
-                    <div style={{ fontSize: 14, color: 'var(--muted)' }}>
-                      Configure parameters and hit Generate.
+                    <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>
+                      Select subject and topic
                     </div>
+                    <QuestionForm onSubmit={generateQuestion} isLoading={loading} />
                   </div>
-                )}
+                </div>
 
-                {questionData && (
-                  <div>
+                {/* Results */}
+                <div>
+                  {!questionData && !error && (
                     <div style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      marginBottom: 16, flexWrap: 'wrap', gap: 8,
+                      border: '1.5px dashed rgba(99,102,241,0.2)',
+                      borderRadius: 20, padding: '48px 28px', textAlign: 'center',
                     }}>
-                      <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
-                        Generated Questions
+                      <div style={{ fontSize: 44, marginBottom: 14 }}>🚀</div>
+                      <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 20, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>
+                        Ready when you are
                       </div>
-                      {questionMeta && (
-                        <span style={{
-                          padding: '3px 11px', borderRadius: 20, fontSize: 11.5, fontWeight: 500,
-                          background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)',
-                          color: 'var(--accent2)',
+                      <div style={{ fontSize: 14, color: 'var(--muted)' }}>
+                        Configure parameters and hit Generate.
+                      </div>
+                    </div>
+                  )}
+
+                  {questionData && (
+                    <div>
+                      <div style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        marginBottom: 16, flexWrap: 'wrap', gap: 8,
+                      }}>
+                        <div style={{ fontFamily: 'Syne,sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
+                          Generated Questions
+                        </div>
+                        {questionMeta && (
+                          <span style={{
+                            padding: '3px 11px', borderRadius: 20, fontSize: 11.5, fontWeight: 500,
+                            background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)',
+                            color: 'var(--accent2)',
+                          }}>
+                            {currentQuestionIndex + 1}/{questions.length} · {questionMeta.provider === 'groq' ? '⚡' : '🐢'} {questionMeta.model}
+                          </span>
+                        )}
+                      </div>
+
+                      {currentQ && (
+                        <>
+                          <QuestionCard
+                            key={`${questionMeta?.generated_at}-${currentQuestionIndex}`}
+                            data={currentQ}
+                            index={currentQuestionIndex + 1}
+                            animate={animateQ1 && currentQuestionIndex === 0}
+                          />
+                          <DoubtPanel
+                            questionText={currentQ?.question}
+                            subject={lastGenMeta?.subject}
+                            chapter={lastGenMeta?.chapter}
+                            topic={currentQ?.topic || ''}
+                            studentClass={lastFormData?.class || ''}
+                          />
+                        </>
+                      )}
+
+                      {lastGenMeta && (
+                        <ScientiaStrip
+                          context="afterQuestion"
+                          chapter={lastGenMeta.chapter}
+                          subject={lastGenMeta.subject}
+                        />
+                      )}
+
+                      {questions.length > 1 && (
+                        <div className="pagination-controls" style={{
+                          display: 'flex', alignItems: 'center',
+                          justifyContent: 'space-between', marginTop: 20, gap: 12,
                         }}>
-                          {currentQuestionIndex + 1}/{questions.length} · {questionMeta.provider === 'groq' ? '⚡' : '🐢'} {questionMeta.model}
-                        </span>
+                          <button className="btn-secondary" onClick={() => goTo(Math.max(0, currentQuestionIndex - 1))} disabled={currentQuestionIndex === 0}>← Prev</button>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+                            {questions.map((_, i) => (
+                              <div key={i} className={`page-dot${i === currentQuestionIndex ? ' active' : ''}`} onClick={() => goTo(i)} />
+                            ))}
+                          </div>
+                          <button className="btn-secondary" onClick={() => goTo(Math.min(questions.length - 1, currentQuestionIndex + 1))} disabled={currentQuestionIndex === questions.length - 1}>Next →</button>
+                        </div>
                       )}
                     </div>
-
-                    {currentQ && (
-    <>
-        <QuestionCard
-            key={`${questionMeta?.generated_at}-${currentQuestionIndex}`}
-            data={currentQ}
-            index={currentQuestionIndex + 1}
-            animate={animateQ1 && currentQuestionIndex === 0}
-        />
-        <DoubtPanel                                    
-            questionText={currentQ?.question}
-            subject={lastGenMeta?.subject}
-            chapter={lastGenMeta?.chapter}
-            topic={currentQ?.topic || ''}
-            studentClass={lastFormData?.class || ''}
-        />
-    </>
-)}
-
-                    {/* ── Scientia CTA after question ── */}
-                    {lastGenMeta && (
-                      <ScientiaStrip
-                        context="afterQuestion"
-                        chapter={lastGenMeta.chapter}
-                        subject={lastGenMeta.subject}
-                      />
-                    )}
-
-                    {questions.length > 1 && (
-                      <div className="pagination-controls" style={{
-                        display: 'flex', alignItems: 'center',
-                        justifyContent: 'space-between', marginTop: 20, gap: 12,
-                      }}>
-                        <button className="btn-secondary" onClick={() => goTo(Math.max(0, currentQuestionIndex - 1))} disabled={currentQuestionIndex === 0}>← Prev</button>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-                          {questions.map((_, i) => (
-                            <div key={i} className={`page-dot${i === currentQuestionIndex ? ' active' : ''}`} onClick={() => goTo(i)} />
-                          ))}
-                        </div>
-                        <button className="btn-secondary" onClick={() => goTo(Math.min(questions.length - 1, currentQuestionIndex + 1))} disabled={currentQuestionIndex === questions.length - 1}>Next →</button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          </GuestGate>
         )}
 
         {/* ── PRACTICE ── */}
@@ -551,7 +592,6 @@ function App() {
             {practiceState === 'result' && practiceResult && (
               <>
                 <PracticeResult resultData={practiceResult} onRetry={resetPractice} />
-                {/* ── Scientia CTA after result ── */}
                 <ScientiaStrip context="afterResult" />
               </>
             )}
