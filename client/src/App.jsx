@@ -88,7 +88,7 @@ function ScientiaStrip({ context = 'default', chapter = '', subject = '' }) {
 function App() {
   const health     = useHealth();
   const addSession = useProgressStore(s => s.addSession);
-  const { isGuest, isLoggedIn, incrementGuestUsage } = useAuth();
+  const { isGuest, isLoggedIn, user, signOut, incrementGuestUsage } = useAuth();
 
   // ── Check if URL is /login on first load ──────────────────────────────────
   const [appMode, setAppMode] = useState(() => {
@@ -334,10 +334,53 @@ function App() {
           ))}
         </div>
 
-        {/* Right side — model badge + login button */}
+        {/* Right side — model badge + user info */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <ModelBadge health={health} />
-          {!isLoggedIn && (
+
+          {/* ── Logged in: avatar + email + logout ── */}
+          {isLoggedIn && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {/* Avatar circle with initial */}
+              <div style={{
+                width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                background: 'linear-gradient(135deg,#6366f1,#a78bfa)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, fontWeight: 700, color: '#fff',
+                boxShadow: '0 0 0 2px rgba(99,102,241,0.35)',
+              }}>
+                {(user?.user_metadata?.name || user?.email || '?')[0].toUpperCase()}
+              </div>
+              {/* Email — hidden on mobile */}
+              <span className="hide-mobile" style={{
+                fontSize: 12, color: 'var(--muted)',
+                maxWidth: 140, overflow: 'hidden',
+                textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {user?.user_metadata?.name || user?.email}
+              </span>
+              {/* Logout */}
+              <button
+                onClick={async () => { await signOut(); setAppMode('generator'); }}
+                style={{
+                  padding: '5px 11px', borderRadius: 8,
+                  background: 'rgba(239,68,68,0.08)',
+                  border: '1px solid rgba(239,68,68,0.25)',
+                  color: '#f87171', fontSize: 11, fontWeight: 600,
+                  fontFamily: 'DM Sans, sans-serif',
+                  cursor: 'pointer', transition: 'all .18s',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.18)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
+              >
+                Sign out
+              </button>
+            </div>
+          )}
+
+          {/* ── Guest: login button ── */}
+          {isGuest && (
             <button
               onClick={() => setAppMode('login')}
               style={{
