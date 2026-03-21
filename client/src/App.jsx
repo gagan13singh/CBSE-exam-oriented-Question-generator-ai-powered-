@@ -248,11 +248,11 @@ function App() {
   const currentQ  = questions[currentQuestionIndex];
 
   const navItems = [
-    { mode: 'generator', label: '⚡ Generator', icon: '⚡', shortLabel: 'Gen'      },
-    { mode: 'practice',  label: '📝 Practice',  icon: '📝', shortLabel: 'Test'     },
-    { mode: 'syllabus',  label: '📚 Syllabus',  icon: '📚', shortLabel: 'Syllabus' },
-    { mode: 'dashboard', label: '📊 Dashboard', icon: '📊', shortLabel: 'Stats'    },
-    { mode: 'analytics', label: '📈 Analytics', icon: '📈', shortLabel: 'Charts'   },
+    { mode: 'generator', label: '⚡ Generator', icon: '⚡', shortLabel: 'Gen'   },
+    { mode: 'practice',  label: '📝 Practice',  icon: '📝', shortLabel: 'Test'  },
+    { mode: 'syllabus',  label: '📚 Syllabus',  icon: '📚', shortLabel: 'Syll'  },
+    { mode: 'dashboard', label: '📊 Dashboard', icon: '📊', shortLabel: 'Stats' },
+    { mode: 'analytics', label: '📈 Analytics', icon: '📈', shortLabel: 'Chart' },
   ];
 
   const isFullWidth = ['dashboard', 'analytics', 'syllabus'].includes(appMode);
@@ -264,17 +264,17 @@ function App() {
 
   // ── MAIN APP ──────────────────────────────────────────────────────────────
   return (
-    <div className="app-wrapper">
+    <div className="app-wrapper" style={{ overflowX: 'hidden' }}>
 
       {/* ══ DESKTOP NAV ══ */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 1.25rem', height: 64,
+        padding: '0 1rem', height: 56,
         background: 'rgba(5,9,21,0.85)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         borderBottom: '1px solid var(--border)',
-        gap: 12,
+        gap: 8, overflow: 'hidden',
       }}>
 
         {/* Logo + Scientia badge */}
@@ -335,35 +335,38 @@ function App() {
         </div>
 
         {/* Right side — model badge + user info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-          <ModelBadge health={health} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {/* Model badge — hidden on small screens */}
+          <div className="hide-mobile">
+            <ModelBadge health={health} />
+          </div>
 
-          {/* ── Logged in: avatar + email + logout ── */}
+          {/* ── Logged in ── */}
           {isLoggedIn && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {/* Avatar circle with initial */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {/* Avatar */}
               <div style={{
-                width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
                 background: 'linear-gradient(135deg,#6366f1,#a78bfa)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, fontWeight: 700, color: '#fff',
+                fontSize: 11, fontWeight: 700, color: '#fff',
                 boxShadow: '0 0 0 2px rgba(99,102,241,0.35)',
               }}>
                 {(user?.user_metadata?.name || user?.email || '?')[0].toUpperCase()}
               </div>
-              {/* Email — hidden on mobile */}
+              {/* Name — desktop only */}
               <span className="hide-mobile" style={{
                 fontSize: 12, color: 'var(--muted)',
-                maxWidth: 140, overflow: 'hidden',
+                maxWidth: 120, overflow: 'hidden',
                 textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
-                {user?.user_metadata?.name || user?.email}
+                {user?.user_metadata?.name || user?.email?.split('@')[0]}
               </span>
-              {/* Logout */}
+              {/* Sign out */}
               <button
                 onClick={async () => { await signOut(); setAppMode('generator'); }}
                 style={{
-                  padding: '5px 11px', borderRadius: 8,
+                  padding: '4px 10px', borderRadius: 8,
                   background: 'rgba(239,68,68,0.08)',
                   border: '1px solid rgba(239,68,68,0.25)',
                   color: '#f87171', fontSize: 11, fontWeight: 600,
@@ -384,7 +387,7 @@ function App() {
             <button
               onClick={() => setAppMode('login')}
               style={{
-                padding: '6px 14px', borderRadius: 9,
+                padding: '5px 12px', borderRadius: 9,
                 background: 'rgba(99,102,241,0.12)',
                 border: '1px solid rgba(99,102,241,0.3)',
                 color: 'var(--accent2)',
