@@ -18,6 +18,7 @@ const questionSchema = z.object({
     topic: z.string().max(200).optional().default(''),
     difficulty: z.enum(VALID_DIFFICULTIES).optional().default('Exam-Oriented'),
     questionType: z.string().optional().default('All'),
+    count: z.number().int().min(1).max(50).optional().default(5),
 });
 
 const paperSchema = z.object({

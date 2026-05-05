@@ -45,13 +45,10 @@
       "Lines and Angles": ["Complementary Angles", "Supplementary Angles", "Parallel Lines", "Transversal"],
       "Triangles": ["Congruence Rules (SSS, SAS, ASA, AAS, RHS)", "Properties", "Inequalities"],
       "Quadrilaterals": ["Parallelogram", "Rectangle", "Rhombus", "Square", "Trapezium"],
-      "Areas of Parallelograms and Triangles": ["Area Theorems", "Median"],
       "Circles": ["Chord", "Arc", "Subtended Angles", "Cyclic Quadrilateral"],
-      "Constructions": ["Bisectors", "Triangles"],
       "Herons Formula": ["Semi-perimeter", "Area of Triangle", "Area of Quadrilateral"],
       "Surface Areas and Volumes": ["Cuboid", "Cube", "Cylinder", "Cone", "Sphere"],
-      "Statistics": ["Mean", "Median", "Mode", "Bar Graph", "Histogram"],
-      "Probability": ["Experimental Probability", "Events", "Sample Space"]
+      "Statistics": ["Mean", "Median", "Mode", "Bar Graph", "Histogram"]
     },
     "Science": {
       "Matter in Our Surroundings": ["Solids Liquids Gases", "Evaporation", "Sublimation", "Latent Heat"],
@@ -65,8 +62,6 @@
       "Gravitation": ["Universal Law of Gravitation", "g", "Weight vs Mass", "Free Fall", "Pressure", "Archimedes"],
       "Work and Energy": ["Work Done", "Kinetic Energy", "Potential Energy", "Conservation of Energy", "Power"],
       "Sound": ["Wave Motion", "Frequency", "Amplitude", "Speed of Sound", "Echo", "Reflection"],
-      "Why Do We Fall Ill": ["Health", "Disease", "Infectious Disease", "Immunity"],
-      "Natural Resources": ["Air", "Water", "Nitrogen Cycle", "Carbon Cycle", "Ozone Layer"],
       "Improvement in Food Resources": ["Crop Improvement", "Manure", "Fertilizers", "Irrigation", "Animal Husbandry"]
     },
     "Social Science": {
@@ -91,6 +86,16 @@
       "People as Resource": ["Human Capital", "Economic Activities", "Unemployment"],
       "Poverty as a Challenge": ["Poverty Line", "Causes", "Government Schemes"],
       "Food Security in India": ["Food Security", "Buffer Stock", "PDS", "Hunger"]
+    },
+    "Hindi": {
+      "Kshitij (Prose)": ["Do Bailon Ki Katha", "Lhasa Ki Aur", "Upbhoktavad Ki Sanskriti", "Sanwale Sapnon Ki Yaad", "Nana Saheb Ki Putri Maina Ko Bhasm Kar Diya Gaya", "Premchand Ke Phate Joote", "Mere Bachpan Ke Din", "Ek Kutta Aur Ek Maina"],
+      "Kshitij (Poetry)": ["Sakhian Evam Sabad", "Vaakh", "Savaiye", "Kaidi Aur Kokila", "Gram Shree", "Chandra Gahna Se Lauti Ber", "Megh Aaye", "Yamraj Ki Disha", "Bachche Kaam Par Ja Rahe Hain"],
+      "Kritika": ["Is Jal Pralay Mein", "Mere Sang Ki Auratein", "Reedh Ki Haddi", "Mati Wali", "Kis Tarah Aakhirkar Main Hindi Mein Aaya"],
+      "Grammar": ["Shabd Nirman", "Samas", "Vakya Bhed", "Alankar", "Anuched Lekhan", "Patra Lekhan"]
+    },
+    "Information Technology": {
+      "Part A - Employability Skills": ["Communication Skills", "Self-Management Skills", "ICT Skills", "Entrepreneurial Skills", "Green Skills"],
+      "Part B - Subject Specific Skills": ["Introduction to IT-ITeS Industry", "Data Entry and Keyboarding Skills", "Digital Documentation", "Electronic Spreadsheet", "Digital Presentation"]
     }
   },
   "class_10": {
@@ -123,8 +128,7 @@
       "Human Eye and Colourful World": ["Eye", "Defects of Vision", "Dispersion", "Scattering", "Rainbow"],
       "Electricity": ["Ohms Law", "Resistance", "Series and Parallel Circuits", "Heating Effect", "Electric Power"],
       "Magnetic Effects of Electric Current": ["Fleming Rules", "Electric Motor", "Electromagnetic Induction", "Generator", "AC vs DC"],
-      "Our Environment": ["Ecosystem", "Food Chain", "Ozone Depletion", "Waste Management"],
-      "Management of Natural Resources": ["Forests", "Wildlife", "Water", "Coal and Petroleum", "Sustainable Development"]
+      "Our Environment": ["Ecosystem", "Food Chain", "Ozone Depletion", "Waste Management"]
     },
     "Social Science": {
       "The Rise of Nationalism in Europe": ["Romantic Nationalism", "Unification of Germany and Italy", "Symbols"],
@@ -152,6 +156,16 @@
       "Money and Credit": ["Barter", "Money", "Credit", "RBI", "Formal vs Informal"],
       "Globalisation and the Indian Economy": ["MNCs", "Trade", "WTO", "Effects"],
       "Consumer Rights": ["Right to Safety", "Consumer Forum", "COPRA"]
+    },
+    "Hindi": {
+      "Kshitij (Prose)": ["Netaji Ka Chashma", "Balgobin Bhagat", "Lakhnavi Andaz", "Manviya Karuna Ki Divya Chamak", "Ek Kahani Yah Bhi", "Stri Shiksha Ke Virodhi Kutarkon Ka Khandan", "Naubatkhane Mein Ibadat", "Sanskriti"],
+      "Kshitij (Poetry)": ["Surdas Ke Pad", "Ram-Lakshman-Parashuram Samvad", "Savaiya Aur Kavitt", "Atmakathya", "Utsah Aur Aat Nahi Rahi Hai", "Yah Danturit Muskan Aur Fasal", "Chhaya Mat Chhuna", "Kanyadaan", "Sangatkar"],
+      "Kritika": ["Mata Ka Aanchal", "George Pancham Ki Naak", "Sana Sana Hath Jodi", "Ehi Thaiyan Jhulani Herani Ho Rama", "Main Kyon Likhta Hun"],
+      "Grammar": ["Rachna Ke Aadhar Par Vakya Bhed", "Vachya", "Pad Parichay", "Ras", "Anuched Lekhan", "Patra Lekhan", "Vigyapan Lekhan"]
+    },
+    "Information Technology": {
+      "Part A - Employability Skills": ["Communication Skills", "Self-Management Skills", "ICT Skills", "Entrepreneurial Skills", "Green Skills"],
+      "Part B - Subject Specific Skills": ["Digital Documentation (Advanced)", "Electronic Spreadsheet (Advanced)", "Database Management System", "Web Applications and Security"]
     }
   },
   "class_11": {
@@ -204,6 +218,64 @@
       "Limits and Derivatives": ["Concept of Limit", "Differentiation", "Product Quotient Rule"],
       "Statistics": ["Mean Deviation", "Variance", "Standard Deviation", "CV"],
       "Probability": ["Random Experiment", "Sample Space", "Event", "Conditional Probability", "Bayes Theorem"]
+    },
+    "Biology": {
+      "The Living World": ["Diversity", "Taxonomy", "Taxonomic Hierarchy", "Binomial Nomenclature", "ICBN"],
+      "Biological Classification": ["Two Kingdom to Five Kingdom", "Monera", "Protista", "Fungi", "Viruses", "Lichens"],
+      "Plant Kingdom": ["Algae", "Bryophytes", "Pteridophytes", "Gymnosperms", "Angiosperms", "Alternation of Generations"],
+      "Animal Kingdom": ["Basis of Classification", "Phyla from Porifera to Chordata", "Non-Chordates vs Chordates"],
+      "Morphology of Flowering Plants": ["Root", "Stem", "Leaf", "Inflorescence", "Flower", "Fruit", "Seed", "Families"],
+      "Anatomy of Flowering Plants": ["Plant Tissues", "Tissue Systems", "Anatomy of Dicot & Monocot Root Stem Leaf"],
+      "Structural Organisation in Animals": ["Epithelial Tissue", "Connective Tissue", "Muscular Tissue", "Neural Tissue", "Cockroach Anatomy", "Frog Anatomy"],
+      "Cell: The Unit of Life": ["Cell Theory", "Prokaryotic Cell", "Eukaryotic Cell", "Cell Organelles in Detail"],
+      "Biomolecules": ["Carbohydrates", "Proteins", "Lipids", "Nucleic Acids", "Enzymes", "Metabolic Basis"],
+      "Cell Cycle and Cell Division": ["Cell Cycle", "Mitosis (Stages)", "Meiosis (Stages)", "Significance"],
+      "Transport in Plants": ["Diffusion", "Osmosis", "Water Potential", "Absorption", "Translocation", "Phloem Loading"],
+      "Mineral Nutrition": ["Essential Elements", "Deficiency Symptoms", "Nitrogen Fixation", "Nitrogen Cycle"],
+      "Photosynthesis in Higher Plants": ["Site", "Light Reactions", "Calvin Cycle", "C3 vs C4", "CAM", "Photorespiration", "Factors Affecting"],
+      "Respiration in Plants": ["Aerobic & Anaerobic Respiration", "Glycolysis", "Krebs Cycle", "ETS", "ATP Yield", "RQ"],
+      "Plant Growth and Development": ["Growth Phases", "Plant Growth Regulators", "Photoperiodism", "Vernalisation", "Seed Dormancy"],
+      "Digestion and Absorption": ["GI Tract", "Digestive Glands", "Digestion of Carbohydrates Proteins Fats", "Absorption", "Disorders"],
+      "Breathing and Exchange of Gases": ["Respiratory Organs", "Mechanism of Breathing", "Respiratory Volumes", "Gas Exchange", "Transport of Gases", "Disorders"],
+      "Body Fluids and Circulation": ["Blood Composition", "Blood Groups", "Coagulation", "Heart Structure", "Cardiac Cycle", "ECG", "Lymph"],
+      "Excretory Products and their Elimination": ["Modes of Excretion", "Nephron Structure", "Urine Formation", "Regulation", "Disorders", "Dialysis"],
+      "Locomotion and Movement": ["Types of Movement", "Skeletal System", "Types of Joints", "Muscle Contraction", "Disorders"],
+      "Neural Control and Coordination": ["Neuron Structure", "Impulse Conduction", "Brain", "Spinal Cord", "Reflex Arc", "Sense Organs"],
+      "Chemical Coordination and Integration": ["Endocrine Glands", "Hormones", "Mechanism of Action", "Disorders"]
+    },
+    "Computer Science": {
+      "Computer Systems and Organisation": ["Basic computer organisation", "Types of software", "Boolean logic", "Number system", "Encoding schemes"],
+      "Computational Thinking and Programming - 1": ["Problem solving", "Basics of Python", "Data types", "Operators", "Expressions", "Errors", "Flow of control", "Strings", "Lists", "Tuples", "Dictionary", "Python modules"],
+      "Society, Law and Ethics": ["Digital Footprints", "Digital society and Netizen", "Data protection", "Cyber crime", "Cyber safety", "E-waste management", "IT Act"]
+    },
+    "English": {
+      "Hornbill (Prose)": ["The Portrait of a Lady", "We Are Not Afraid to Die...", "Discovering Tut", "Landscape of the Soul", "The Ailing Planet", "The Browning Version", "The Adventure", "Silk Road"],
+      "Hornbill (Poetry)": ["A Photograph", "The Laburnum Top", "The Voice of the Rain", "Childhood", "Father to Son"],
+      "Snapshots": ["The Summer of the Beautiful White Horse", "The Address", "Ranga’s Marriage", "Albert Einstein at School", "Mother’s Day", "The Ghat of the Only World", "Birth", "The Tale of Melon City"],
+      "Grammar and Writing": ["Determiners", "Tenses", "Clauses", "Modals", "Poster Making", "Speech", "Debate"]
+    },
+    "Economics": {
+      "Statistics for Economics": ["Introduction", "Collection, Organisation and Presentation of Data", "Statistical Tools and Interpretation"],
+      "Introductory Microeconomics": ["Introduction", "Consumer Equilibrium and Demand", "Producer Behaviour and Supply", "Forms of Market and Price Determination"]
+    },
+    "Accountancy": {
+      "Financial Accounting - I": ["Theoretical Framework", "Accounting Process", "Trial Balance", "Depreciation, Provisions and Reserves", "Bills of Exchange"],
+      "Financial Accounting - II": ["Financial Statements of Sole Proprietorship", "Incomplete Records", "Computers in Accounting"]
+    },
+    "Business Studies": {
+      "Foundations of Business": ["Nature and Purpose of Business", "Forms of Business Organisations", "Public, Private and Global Enterprises", "Business Services", "Emerging Modes of Business", "Social Responsibility of Business and Business Ethics"],
+      "Finance and Trade": ["Sources of Business Finance", "Small Business and Enterprises", "Internal Trade", "International Business"]
+    },
+    "History": {
+      "Themes in World History": ["Writing and City Life", "An Empire Across Three Continents", "Nomadic Empires", "The Three Orders", "Changing Cultural Traditions", "Displacing Indigenous Peoples", "Paths to Modernisation"]
+    },
+    "Geography": {
+      "Fundamentals of Physical Geography": ["Geography as a Discipline", "The Earth", "Landforms", "Climate", "Water (Oceans)", "Life on the Earth"],
+      "India - Physical Environment": ["Introduction", "Physiography", "Climate, Vegetation and Soil", "Hazards and Disasters"]
+    },
+    "Political Science": {
+      "Indian Constitution at Work": ["Constitution: Why and How?", "Rights in the Indian Constitution", "Election and Representation", "Executive", "Legislature", "Judiciary", "Federalism", "Local Governments", "Constitution as a Living Document"],
+      "Political Theory": ["Political Theory: An Introduction", "Freedom", "Equality", "Social Justice", "Rights", "Citizenship", "Nationalism", "Secularism"]
     }
   },
   "class_12": {
@@ -255,6 +327,61 @@
       "Three Dimensional Geometry": ["Direction Cosines", "Equation of Line", "Angle between Lines", "Plane", "Angle between Planes"],
       "Linear Programming": ["Corner Point Method", "Feasible Region", "Types of LPP"],
       "Probability": ["Conditional Probability", "Multiplication Theorem", "Bayes Theorem", "Random Variable", "Binomial Distribution"]
+    },
+    "Biology": {
+      "Reproduction in Organisms": ["Modes of Reproduction", "Asexual Reproduction", "Sexual Reproduction Stages", "Events in Sexual Reproduction"],
+      "Sexual Reproduction in Flowering Plants": ["Stamen & Pistil Structure", "Microsporogenesis", "Megasporogenesis", "Pollination", "Fertilisation", "Fruit & Seed"],
+      "Human Reproduction": ["Male Reproductive System", "Female Reproductive System", "Gametogenesis", "Fertilisation", "Implantation", "Embryonic Development", "Parturition"],
+      "Reproductive Health": ["Reproductive Health Issues", "Population Control", "Contraception", "MTP", "STDs", "Infertility ART"],
+      "Principles of Inheritance and Variation": ["Mendels Laws", "Monohybrid & Dihybrid Cross", "Deviation from Mendelism", "Chromosomal Theory", "Sex Determination", "Mutation"],
+      "Molecular Basis of Inheritance": ["DNA Structure", "DNA Replication", "Transcription", "Genetic Code", "Translation", "Gene Regulation", "Human Genome Project"],
+      "Evolution": ["Origin of Life", "Theories of Evolution", "Darwinian Natural Selection", "Evidence", "Mechanism", "Hardy-Weinberg", "Human Evolution"],
+      "Human Health and Disease": ["Common Diseases", "Immunity (Innate Acquired)", "Vaccination", "AIDS", "Cancer", "Drugs & Alcohol Abuse"],
+      "Strategies for Enhancement in Food Production": ["Plant Breeding", "Tissue Culture", "Biofortification", "Animal Husbandry", "Apiculture", "Aquaculture"],
+      "Microbes in Human Welfare": ["Microbes in Food", "Industrial Products", "Sewage Treatment", "Biogas", "Biocontrol", "Biofertilisers"],
+      "Biotechnology: Principles and Processes": ["Genetic Engineering", "Restriction Enzymes", "Cloning Vectors", "PCR", "Recombinant DNA Technology"],
+      "Biotechnology and its Applications": ["GM Crops", "Insulin Production", "Gene Therapy", "Molecular Diagnosis", "Ethical Issues", "GEAC"],
+      "Organisms and Populations": ["Organism and Environment", "Population Attributes", "Growth Models", "Interspecific Interactions"],
+      "Ecosystem": ["Structure", "Productivity", "Decomposition", "Energy Flow", "Nutrient Cycling", "Ecosystem Services"],
+      "Biodiversity and Conservation": ["Levels of Biodiversity", "Patterns", "Loss of Biodiversity", "Conservation (In-situ Ex-situ)", "Hot Spots"],
+      "Environmental Issues": ["Air Pollution", "Water Pollution", "Solid Waste", "Agrochemicals", "Greenhouse Effect", "Ozone Depletion", "Deforestation"]
+    },
+    "Computer Science": {
+      "Computational Thinking and Programming - 2": ["Revision of Python Class XI", "Functions", "File handling", "Text file", "Binary file", "CSV file", "Data Structure (Stack)"],
+      "Computer Networks": ["Evolution of networking", "Data communication terminologies", "Transmission media", "Network devices", "Network topologies", "Network protocol", "Web services"],
+      "Database Management": ["Database concepts", "Relational data model", "SQL", "Interface of python with an SQL database"]
+    },
+    "English": {
+      "Flamingo (Prose)": ["The Last Lesson", "Lost Spring", "Deep Water", "The Rattrap", "Indigo", "Poets and Pancakes", "The Interview", "Going Places"],
+      "Flamingo (Poetry)": ["My Mother at Sixty-six", "Keeping Quiet", "A Thing of Beauty", "A Roadside Stand", "Aunt Jennifer’s Tigers"],
+      "Vistas": ["The Third Level", "The Tiger King", "Journey to the end of the Earth", "The Enemy", "On the Face of It", "Memories of Childhood"],
+      "Writing Skills": ["Notice Writing", "Formal/Informal Invitation and Reply", "Letters", "Article/ Report Writing"]
+    },
+    "Economics": {
+      "Introductory Macroeconomics": ["National Income and Related Aggregates", "Money and Banking", "Determination of Income and Employment", "Government Budget and the Economy", "Balance of Payments"],
+      "Indian Economic Development": ["Development Experience (1947-90) and Economic Reforms since 1991", "Current challenges facing Indian Economy", "Development Experience of India"]
+    },
+    "Accountancy": {
+      "Accounting for Partnership Firms": ["Fundamentals", "Goodwill: Nature and Valuation", "Change in Profit-Sharing Ratio", "Admission of a Partner", "Retirement/Death of a Partner", "Dissolution of Partnership Firm"],
+      "Accounting for Companies": ["Accounting for Share Capital", "Issue and Redemption of Debentures"],
+      "Analysis of Financial Statements": ["Financial Statements of a Company", "Financial Statement Analysis", "Accounting Ratios", "Cash Flow Statement"]
+    },
+    "Business Studies": {
+      "Principles and Functions of Management": ["Nature and Significance of Management", "Principles of Management", "Business Environment", "Planning", "Organising", "Staffing", "Directing", "Controlling"],
+      "Business Finance and Marketing": ["Financial Management", "Financial Markets", "Marketing Management", "Consumer Protection"]
+    },
+    "History": {
+      "Themes in Indian History Part-I": ["Bricks, Beads and Bones", "Kings, Farmers and Towns", "Kinship, Caste and Class", "Thinkers, Beliefs and Buildings"],
+      "Themes in Indian History Part-II": ["Through the Eyes of Travellers", "Bhakti-Sufi Traditions", "An Imperial Capital: Vijayanagara", "Peasants, Zamindars and the State"],
+      "Themes in Indian History Part-III": ["Colonialism and the Countryside", "Rebels and the Raj", "Mahatma Gandhi and the Nationalist Movement", "Understanding Partition", "Framing the Constitution"]
+    },
+    "Geography": {
+      "Fundamentals of Human Geography": ["Human Geography Nature and Scope", "The World Population Distribution, Density and Growth", "Human Development", "Primary Activities", "Secondary Activities", "Tertiary and Quaternary Activities", "Transport, Communication and Trade"],
+      "India - People and Economy": ["Population", "Human Settlements", "Land Resources and Agriculture", "Water Resources", "Mineral and Energy Resources", "Planning and Sustainable Development", "Transport and Communication", "International Trade"]
+    },
+    "Political Science": {
+      "Contemporary World Politics": ["The End of Bipolarity", "New Centres of Power", "Contemporary South Asia", "United Nations and its Organizations", "Security in Contemporary World", "Environment and Natural Resources", "Globalisation"],
+      "Politics in India Since Independence": ["Challenges of Nation-Building", "Era of One-Party Dominance", "Politics of Planned Development", "India’s External Relations", "Challenges to and Restoration of the Congress System", "The Crisis of Democratic Order", "Regional Aspirations", "Recent Developments in Indian Politics"]
     }
   }
 }

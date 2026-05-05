@@ -25,7 +25,7 @@ router.post(
     validate(questionSchema),
     async (req, res, next) => {
         try {
-            const { class: studentClass, subject, chapter, topic, difficulty, questionType } = req.body;
+            const { class: studentClass, subject, chapter, topic, difficulty, questionType, count = 5 } = req.body;
 
             // ── Step 1: Syllabus validation (< 5ms, no LLM) ──────────────────────
             const validation = validateTopic(studentClass, subject, chapter, topic);
@@ -35,7 +35,7 @@ router.post(
 
             // ── Step 2: Cache key from params (not prompt) ────────────────────────
             // Using params object ensures same topic always hits same cache slot
-            const cacheParams = { class: studentClass, subject, chapter, topic, difficulty, questionType };
+            const cacheParams = { class: studentClass, subject, chapter, topic, difficulty, questionType, count };
 
             const cached = cache.get('question', cacheParams);
             if (cached) {
@@ -50,7 +50,7 @@ router.post(
             const ncertContext = await retrieveNCERTContext({ subject, studentClass, chapter, topic });
 
             // ── Step 4: Build prompt with topic-locked context ────────────────────
-            const prompt = buildQuestionPrompt({ studentClass, subject, chapter, topic, difficulty, ncertContext });
+            const prompt = buildQuestionPrompt({ studentClass, subject, chapter, topic, difficulty, count, ncertContext });
 
             // ── Step 5: Call LLM ──────────────────────────────────────────────────
             const { result: aiResponse, model, provider } = await callLLM(prompt);

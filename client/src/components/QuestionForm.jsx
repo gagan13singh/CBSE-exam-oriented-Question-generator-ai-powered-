@@ -11,6 +11,7 @@ import { getSubjects, getChapters, getTopics } from '../data/syllabusData';
 const QuestionForm = ({ onSubmit, isLoading }) => {
     const [formData, setFormData] = useState({
         class: '',
+        stream: '',
         subject: '',
         chapter: '',
         topic: '',
@@ -21,8 +22,12 @@ const QuestionForm = ({ onSubmit, isLoading }) => {
 
     // Reset cascading dropdowns
     useEffect(() => {
-        setFormData(prev => ({ ...prev, subject: '', chapter: '', topic: '' }));
+        setFormData(prev => ({ ...prev, stream: '', subject: '', chapter: '', topic: '' }));
     }, [formData.class]);
+
+    useEffect(() => {
+        setFormData(prev => ({ ...prev, subject: '', chapter: '', topic: '' }));
+    }, [formData.stream]);
 
     useEffect(() => {
         setFormData(prev => ({ ...prev, chapter: '', topic: '' }));
@@ -44,8 +49,23 @@ const QuestionForm = ({ onSubmit, isLoading }) => {
     const difficultyOpts  = ['Easy', 'Medium', 'Exam-Oriented', 'Hard'];
     const typeOpts        = ['MCQ', 'VSA', 'Subjective', 'Long Answer', 'Case-Based'];
     const countOpts       = [1, 3, 5, 10];
+    
+    const streamMap = {
+        Science: ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science', 'English'],
+        Commerce: ['Accountancy', 'Business Studies', 'Economics', 'Mathematics', 'Computer Science', 'English'],
+        Humanities: ['History', 'Geography', 'Political Science', 'Economics', 'Mathematics', 'English']
+    };
+    const streamOptions = Object.keys(streamMap);
 
-    const subjectOptions  = formData.class ? getSubjects(formData.class) : [];
+    let subjectOptions = [];
+    if (formData.class === '11' || formData.class === '12') {
+        if (formData.stream) {
+            const allSubjects = getSubjects(formData.class);
+            subjectOptions = allSubjects.filter(s => streamMap[formData.stream].includes(s));
+        }
+    } else if (formData.class) {
+        subjectOptions = getSubjects(formData.class);
+    }
     const chapterOptions  = (formData.class && formData.subject) ? getChapters(formData.class, formData.subject) : [];
     const topicOptions    = (formData.class && formData.subject && formData.chapter) ? getTopics(formData.class, formData.subject, formData.chapter) : [];
 
@@ -90,14 +110,30 @@ const QuestionForm = ({ onSubmit, isLoading }) => {
                 </div>
             </div>
 
+            {/* Stream - Only for Class 11 and 12 */}
+            {(formData.class === '11' || formData.class === '12') && (
+                <div style={fieldStyle}>
+                    <label style={labelStyle}>Stream</label>
+                    <div style={{ position: 'relative' }}>
+                        <select name="stream" value={formData.stream} onChange={handleChange} style={selectStyle} onFocus={onFocus} onBlur={onBlur}>
+                            <option value="" style={{ background: '#131c30' }}>Select stream</option>
+                            {streamOptions.map(s => (
+                                <option key={s} value={s} style={{ background: '#131c30' }}>{s}</option>
+                            ))}
+                        </select>
+                        <span style={{ position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', pointerEvents: 'none', fontSize: 10 }}>▾</span>
+                    </div>
+                </div>
+            )}
+
             {/* Subject */}
             <div style={fieldStyle}>
                 <label style={labelStyle}>Subject</label>
                 <div style={{ position: 'relative' }}>
                     <select
                         name="subject" value={formData.subject} onChange={handleChange}
-                        style={formData.class ? selectStyle : disabledSelectStyle}
-                        disabled={!formData.class}
+                        style={subjectOptions.length > 0 ? selectStyle : disabledSelectStyle}
+                        disabled={subjectOptions.length === 0}
                         onFocus={onFocus} onBlur={onBlur}
                     >
                         <option value="" style={{ background: '#131c30' }}>Select subject</option>

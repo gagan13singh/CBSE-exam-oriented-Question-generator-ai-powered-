@@ -22,13 +22,10 @@ export const SYLLABUS = {
       'Lines and Angles':                       ['Complementary & Supplementary Angles', 'Linear Pairs', 'Parallel Lines', 'Transversal', 'Angle Sum'],
       'Triangles':                              ['Congruence (SSS SAS ASA AAS RHS)', 'Properties of Triangles', 'Inequalities in Triangle'],
       'Quadrilaterals':                         ['Parallelogram Properties', 'Rectangle', 'Rhombus', 'Square', 'Trapezium', 'Mid-Point Theorem'],
-      'Areas of Parallelograms and Triangles':  ['Figures on Same Base', 'Area Theorems', 'Median'],
       'Circles':                                ['Chords', 'Arcs', 'Angles Subtended', 'Cyclic Quadrilateral'],
-      'Constructions':                          ['Angle Bisector', 'Perpendicular Bisector', 'Triangle Constructions'],
       "Heron's Formula":                        ['Semi-perimeter', 'Area of Triangle', 'Area of Quadrilateral'],
       'Surface Areas and Volumes':              ['Cuboid', 'Cube', 'Right Circular Cylinder', 'Right Circular Cone', 'Sphere', 'Hemisphere'],
-      'Statistics':                             ['Data Collection', 'Bar Graph', 'Histogram', 'Frequency Polygon', 'Mean', 'Median', 'Mode'],
-      'Probability':                            ['Experimental Probability', 'Events', 'Sample Space'],
+      'Statistics':                             ['Data Collection', 'Bar Graph', 'Histogram', 'Frequency Polygon', 'Mean', 'Median', 'Mode']
     },
     Science: {
       'Matter in Our Surroundings':             ['States of Matter', 'Evaporation', 'Sublimation', 'Latent Heat', 'Diffusion'],
@@ -37,14 +34,11 @@ export const SYLLABUS = {
       'Structure of the Atom':                  ['Subatomic Particles', 'Thomson Model', 'Rutherford Model', 'Bohr Model', 'Valence Electrons', 'Isotopes'],
       'The Fundamental Unit of Life':           ['Cell Theory', 'Prokaryotic vs Eukaryotic', 'Cell Organelles', 'Cell Membrane', 'Diffusion & Osmosis'],
       'Tissues':                                ['Plant Tissues (Meristematic, Permanent)', 'Animal Tissues (Epithelial, Connective, Muscular, Nervous)'],
-      'Diversity in Living Organisms':          ['Classification Hierarchy', 'Kingdoms (Monera Protista Fungi Plantae Animalia)', 'Nomenclature'],
       'Motion':                                 ['Distance & Displacement', 'Speed & Velocity', 'Acceleration', 'Equations of Motion', 'Graphical Representation'],
       'Force and Laws of Motion':               ['Inertia', 'Newtons Laws', 'Momentum', 'Conservation of Momentum', 'Action-Reaction'],
       'Gravitation':                            ['Universal Law of Gravitation', 'g on Earth', 'Free Fall', 'Mass vs Weight', 'Thrust & Pressure', 'Archimedes Principle', 'Buoyancy'],
       'Work and Energy':                        ['Work Done by Force', 'Kinetic Energy', 'Potential Energy', 'Conservation of Energy', 'Power', 'Commercial Unit'],
       'Sound':                                  ['Wave Motion', 'Characteristics of Sound', 'Speed of Sound', 'Reflection', 'Echo', 'SONAR', 'Human Ear'],
-      'Why Do We Fall Ill?':                    ['Health', 'Disease Causes', 'Infectious Diseases', 'Modes of Transmission', 'Immunity', 'Vaccination'],
-      'Natural Resources':                      ['Biogeochemical Cycles', 'Carbon Cycle', 'Nitrogen Cycle', 'Water Cycle', 'Ozone Layer'],
       'Improvement in Food Resources':          ['Crop Improvement', 'Manure & Fertilisers', 'Irrigation', 'Animal Husbandry', 'Poultry', 'Fisheries'],
     },
     'Social Science': {
@@ -75,6 +69,16 @@ export const SYLLABUS = {
       'Moments – Supplementary':                ['The Lost Child', 'The Adventures of Toto', "Iswaran the Storyteller", "In the Kingdom of Fools", 'The Happy Prince', 'Weathering the Storm in Ersama', 'The Last Leaf', 'A House is Not a Home', 'The Accidental Tourist', 'The Beggar'],
       'Grammar and Writing':                    ['Tenses', 'Modals', 'Active-Passive', 'Reported Speech', 'Letter Writing', 'Descriptive Writing'],
     },
+    Hindi: {
+      'Kshitij (Prose)':                        ['Do Bailon Ki Katha', 'Lhasa Ki Aur', 'Upbhoktavad Ki Sanskriti', 'Sanwale Sapnon Ki Yaad', 'Nana Saheb Ki Putri Maina Ko Bhasm Kar Diya Gaya', 'Premchand Ke Phate Joote', 'Mere Bachpan Ke Din', 'Ek Kutta Aur Ek Maina'],
+      'Kshitij (Poetry)':                       ['Sakhian Evam Sabad', 'Vaakh', 'Savaiye', 'Kaidi Aur Kokila', 'Gram Shree', 'Chandra Gahna Se Lauti Ber', 'Megh Aaye', 'Yamraj Ki Disha', 'Bachche Kaam Par Ja Rahe Hain'],
+      'Kritika':                                ['Is Jal Pralay Mein', 'Mere Sang Ki Auratein', 'Reedh Ki Haddi', 'Mati Wali', 'Kis Tarah Aakhirkar Main Hindi Mein Aaya'],
+      'Grammar':                                ['Shabd Nirman', 'Samas', 'Vakya Bhed', 'Alankar', 'Anuched Lekhan', 'Patra Lekhan']
+    },
+    'Information Technology': {
+      'Part A - Employability Skills':          ['Communication Skills', 'Self-Management Skills', 'ICT Skills', 'Entrepreneurial Skills', 'Green Skills'],
+      'Part B - Subject Specific Skills':       ['Introduction to IT-ITeS Industry', 'Data Entry and Keyboarding Skills', 'Digital Documentation', 'Electronic Spreadsheet', 'Digital Presentation']
+    },
   },
 
   class_10: {
@@ -89,7 +93,6 @@ export const SYLLABUS = {
       'Introduction to Trigonometry':           ['Trig Ratios', 'Trig Identities', 'Complementary Angles', 'T-table Values'],
       'Some Applications of Trigonometry':      ['Heights and Distances', 'Angle of Elevation', 'Angle of Depression'],
       'Circles':                                ['Tangent to Circle', 'Number of Tangents', 'Length of Tangent'],
-      'Constructions':                          ['Division of Line Segment', 'Similar Triangle', 'Tangent to Circle'],
       'Areas Related to Circles':              ['Area of Sector', 'Area of Segment', 'Combination of Figures'],
       'Surface Areas and Volumes':              ['Combinations of Solids', 'Conversion of Shapes', 'Frustum of Cone'],
       'Statistics':                             ['Mean (Direct, Assumed Mean, Step Deviation)', 'Median', 'Mode', 'Cumulative Frequency', 'Ogive'],
@@ -100,7 +103,6 @@ export const SYLLABUS = {
       'Acids, Bases and Salts':                 ['Properties', 'pH Scale', 'Neutralisation', 'Common Salts', 'Baking Soda', 'Bleaching Powder'],
       'Metals and Non-metals':                  ['Properties', 'Reactivity Series', 'Extraction', 'Corrosion', 'Ionic Bonding'],
       'Carbon and its Compounds':              ['Bonding in Carbon', 'Allotropes', 'Homologous Series', 'Functional Groups', 'Reactions', 'Soaps and Detergents'],
-      'Periodic Classification of Elements':   ['Early Classification', 'Dobereiners Triads', 'Mendeleevs Table', 'Modern Periodic Table', 'Trends'],
       'Life Processes':                         ['Nutrition (Autotrophic, Heterotrophic)', 'Respiration', 'Transportation in Plants & Animals', 'Excretion'],
       'Control and Coordination':               ['Nervous System', 'Reflex Arc', 'Brain', 'Endocrine System', 'Hormones', 'Plant Hormones'],
       'How do Organisms Reproduce?':           ['Asexual Reproduction', 'Sexual Reproduction in Plants', 'Reproduction in Humans', 'Contraception', 'STDs'],
@@ -109,9 +111,7 @@ export const SYLLABUS = {
       'Human Eye and the Colourful World':      ['Structure of Eye', 'Defects of Vision', 'Atmospheric Refraction', 'Dispersion', 'Scattering'],
       'Electricity':                            ['Ohms Law', 'Resistance', 'Series & Parallel Circuits', 'Heating Effect', 'Power & Energy'],
       'Magnetic Effects of Electric Current':   ['Magnetic Field', 'Solenoid', 'Electromagnet', 'Force on Conductor', 'Electric Motor', 'Electromagnetic Induction', 'Generator', 'AC vs DC'],
-      'Sources of Energy':                      ['Conventional Sources', 'Non-Conventional Sources', 'Solar Energy', 'Wind Energy', 'Nuclear Energy'],
       'Our Environment':                        ['Ecosystem', 'Food Chain & Web', 'Trophic Levels', 'Biodegradable Waste', 'Ozone Depletion'],
-      'Management of Natural Resources':        ['Conservation', 'Forests & Wildlife', 'Water', 'Coal & Petroleum', 'Sustainable Development'],
     },
     'Social Science': {
       'The Rise of Nationalism in Europe':      ['French Revolution Legacy', 'Making of Nationalism', 'Unification of Germany & Italy', 'Visualising the Nation'],
@@ -145,6 +145,16 @@ export const SYLLABUS = {
       'First Flight – Poetry':                  ['Dust of Snow', 'Fire and Ice', 'A Tiger in the Zoo', 'How to Tell Wild Animals', 'The Ball Poem', 'Amanda', 'The Trees', 'Fog', 'The Tale of Custard the Dragon', 'For Anne Gregory'],
       'Footprints Without Feet':                ['A Triumph of Surgery', 'The Thief Story', 'The Midnight Visitor', 'A Question of Trust', 'Footprints Without Feet', 'The Making of a Scientist', 'The Necklace', 'The Hack Driver', 'Bholi', 'The Book That Saved the Earth'],
       'Grammar and Writing':                    ['Tenses Review', 'Modals', 'Connectors', 'Active-Passive', 'Reported Speech', 'Formal Letters', 'Analytical Paragraphs', 'Discursive Passages'],
+    },
+    Hindi: {
+      'Kshitij (Prose)':                        ['Netaji Ka Chashma', 'Balgobin Bhagat', 'Lakhnavi Andaz', 'Manviya Karuna Ki Divya Chamak', 'Ek Kahani Yah Bhi', 'Stri Shiksha Ke Virodhi Kutarkon Ka Khandan', 'Naubatkhane Mein Ibadat', 'Sanskriti'],
+      'Kshitij (Poetry)':                       ['Surdas Ke Pad', 'Ram-Lakshman-Parashuram Samvad', 'Savaiya Aur Kavitt', 'Atmakathya', 'Utsah Aur Aat Nahi Rahi Hai', 'Yah Danturit Muskan Aur Fasal', 'Chhaya Mat Chhuna', 'Kanyadaan', 'Sangatkar'],
+      'Kritika':                                ['Mata Ka Aanchal', 'George Pancham Ki Naak', 'Sana Sana Hath Jodi', 'Ehi Thaiyan Jhulani Herani Ho Rama', 'Main Kyon Likhta Hun'],
+      'Grammar':                                ['Rachna Ke Aadhar Par Vakya Bhed', 'Vachya', 'Pad Parichay', 'Ras', 'Anuched Lekhan', 'Patra Lekhan', 'Vigyapan Lekhan']
+    },
+    'Information Technology': {
+      'Part A - Employability Skills':          ['Communication Skills', 'Self-Management Skills', 'ICT Skills', 'Entrepreneurial Skills', 'Green Skills'],
+      'Part B - Subject Specific Skills':       ['Digital Documentation (Advanced)', 'Electronic Spreadsheet (Advanced)', 'Database Management System', 'Web Applications and Security']
     },
   },
 
@@ -223,6 +233,40 @@ export const SYLLABUS = {
       'Statistics':                             ['Measures of Dispersion', 'Range', 'Mean Deviation', 'Variance', 'Standard Deviation', 'Coefficient of Variation'],
       'Probability':                            ['Random Experiments', 'Events', 'Axiomatic Approach', 'Conditional Probability', 'Independent Events'],
     },
+    'Computer Science': {
+      'Computer Systems and Organisation':      ['Basic computer organisation', 'Types of software', 'Boolean logic', 'Number system', 'Encoding schemes'],
+      'Computational Thinking and Programming - 1': ['Problem solving', 'Basics of Python', 'Data types', 'Operators', 'Expressions', 'Errors', 'Flow of control', 'Strings', 'Lists', 'Tuples', 'Dictionary', 'Python modules'],
+      'Society, Law and Ethics':                ['Digital Footprints', 'Digital society and Netizen', 'Data protection', 'Cyber crime', 'Cyber safety', 'E-waste management', 'IT Act']
+    },
+    English: {
+      'Hornbill (Prose)':                       ['The Portrait of a Lady', 'We Are Not Afraid to Die...', 'Discovering Tut', 'Landscape of the Soul', 'The Ailing Planet', 'The Browning Version', 'The Adventure', 'Silk Road'],
+      'Hornbill (Poetry)':                      ['A Photograph', 'The Laburnum Top', 'The Voice of the Rain', 'Childhood', 'Father to Son'],
+      'Snapshots':                              ['The Summer of the Beautiful White Horse', 'The Address', 'Ranga’s Marriage', 'Albert Einstein at School', 'Mother’s Day', 'The Ghat of the Only World', 'Birth', 'The Tale of Melon City'],
+      'Grammar and Writing':                    ['Determiners', 'Tenses', 'Clauses', 'Modals', 'Poster Making', 'Speech', 'Debate']
+    },
+    Economics: {
+      'Statistics for Economics':               ['Introduction', 'Collection, Organisation and Presentation of Data', 'Statistical Tools and Interpretation'],
+      'Introductory Microeconomics':            ['Introduction', 'Consumer Equilibrium and Demand', 'Producer Behaviour and Supply', 'Forms of Market and Price Determination']
+    },
+    Accountancy: {
+      'Financial Accounting - I':               ['Theoretical Framework', 'Accounting Process', 'Trial Balance', 'Depreciation, Provisions and Reserves', 'Bills of Exchange'],
+      'Financial Accounting - II':              ['Financial Statements of Sole Proprietorship', 'Incomplete Records', 'Computers in Accounting']
+    },
+    'Business Studies': {
+      'Foundations of Business':                ['Nature and Purpose of Business', 'Forms of Business Organisations', 'Public, Private and Global Enterprises', 'Business Services', 'Emerging Modes of Business', 'Social Responsibility of Business and Business Ethics'],
+      'Finance and Trade':                      ['Sources of Business Finance', 'Small Business and Enterprises', 'Internal Trade', 'International Business']
+    },
+    History: {
+      'Themes in World History':                ['Writing and City Life', 'An Empire Across Three Continents', 'Nomadic Empires', 'The Three Orders', 'Changing Cultural Traditions', 'Displacing Indigenous Peoples', 'Paths to Modernisation']
+    },
+    Geography: {
+      'Fundamentals of Physical Geography':     ['Geography as a Discipline', 'The Earth', 'Landforms', 'Climate', 'Water (Oceans)', 'Life on the Earth'],
+      'India - Physical Environment':           ['Introduction', 'Physiography', 'Climate, Vegetation and Soil', 'Hazards and Disasters']
+    },
+    'Political Science': {
+      'Indian Constitution at Work':            ['Constitution: Why and How?', 'Rights in the Indian Constitution', 'Election and Representation', 'Executive', 'Legislature', 'Judiciary', 'Federalism', 'Local Governments', 'Constitution as a Living Document'],
+      'Political Theory':                       ['Political Theory: An Introduction', 'Freedom', 'Equality', 'Social Justice', 'Rights', 'Citizenship', 'Nationalism', 'Secularism']
+    },
   },
 
   class_12: {
@@ -292,6 +336,43 @@ export const SYLLABUS = {
       'Three Dimensional Geometry':            ['Direction Cosines & Ratios', 'Equation of Line', 'Angle Between Lines', 'Equation of Plane', 'Angle Between Planes', 'Distance Formulas', 'Coplanarity'],
       'Linear Programming':                    ['Objective Function', 'Constraints', 'Feasible Region', 'Corner Point Method', 'Types of LPP'],
       'Probability':                            ['Conditional Probability', 'Multiplication Theorem', 'Independent Events', 'Bayes Theorem', 'Random Variable', 'Probability Distribution', 'Binomial Distribution', 'Mean & Variance'],
+    },
+    'Computer Science': {
+      'Computational Thinking and Programming - 2': ['Revision of Python Class XI', 'Functions', 'File handling', 'Text file', 'Binary file', 'CSV file', 'Data Structure (Stack)'],
+      'Computer Networks':                      ['Evolution of networking', 'Data communication terminologies', 'Transmission media', 'Network devices', 'Network topologies', 'Network protocol', 'Web services'],
+      'Database Management':                    ['Database concepts', 'Relational data model', 'SQL', 'Interface of python with an SQL database']
+    },
+    English: {
+      'Flamingo (Prose)':                       ['The Last Lesson', 'Lost Spring', 'Deep Water', 'The Rattrap', 'Indigo', 'Poets and Pancakes', 'The Interview', 'Going Places'],
+      'Flamingo (Poetry)':                      ['My Mother at Sixty-six', 'Keeping Quiet', 'A Thing of Beauty', 'A Roadside Stand', 'Aunt Jennifer’s Tigers'],
+      'Vistas':                                 ['The Third Level', 'The Tiger King', 'Journey to the end of the Earth', 'The Enemy', 'On the Face of It', 'Memories of Childhood'],
+      'Writing Skills':                         ['Notice Writing', 'Formal/Informal Invitation and Reply', 'Letters', 'Article/ Report Writing']
+    },
+    Economics: {
+      'Introductory Macroeconomics':            ['National Income and Related Aggregates', 'Money and Banking', 'Determination of Income and Employment', 'Government Budget and the Economy', 'Balance of Payments'],
+      'Indian Economic Development':            ['Development Experience (1947-90) and Economic Reforms since 1991', 'Current challenges facing Indian Economy', 'Development Experience of India']
+    },
+    Accountancy: {
+      'Accounting for Partnership Firms':       ['Fundamentals', 'Goodwill: Nature and Valuation', 'Change in Profit-Sharing Ratio', 'Admission of a Partner', 'Retirement/Death of a Partner', 'Dissolution of Partnership Firm'],
+      'Accounting for Companies':               ['Accounting for Share Capital', 'Issue and Redemption of Debentures'],
+      'Analysis of Financial Statements':       ['Financial Statements of a Company', 'Financial Statement Analysis', 'Accounting Ratios', 'Cash Flow Statement']
+    },
+    'Business Studies': {
+      'Principles and Functions of Management': ['Nature and Significance of Management', 'Principles of Management', 'Business Environment', 'Planning', 'Organising', 'Staffing', 'Directing', 'Controlling'],
+      'Business Finance and Marketing':         ['Financial Management', 'Financial Markets', 'Marketing Management', 'Consumer Protection']
+    },
+    History: {
+      'Themes in Indian History Part-I':        ['Bricks, Beads and Bones', 'Kings, Farmers and Towns', 'Kinship, Caste and Class', 'Thinkers, Beliefs and Buildings'],
+      'Themes in Indian History Part-II':       ['Through the Eyes of Travellers', 'Bhakti-Sufi Traditions', 'An Imperial Capital: Vijayanagara', 'Peasants, Zamindars and the State'],
+      'Themes in Indian History Part-III':      ['Colonialism and the Countryside', 'Rebels and the Raj', 'Mahatma Gandhi and the Nationalist Movement', 'Understanding Partition', 'Framing the Constitution']
+    },
+    Geography: {
+      'Fundamentals of Human Geography':        ['Human Geography Nature and Scope', 'The World Population Distribution, Density and Growth', 'Human Development', 'Primary Activities', 'Secondary Activities', 'Tertiary and Quaternary Activities', 'Transport, Communication and Trade'],
+      'India - People and Economy':             ['Population', 'Human Settlements', 'Land Resources and Agriculture', 'Water Resources', 'Mineral and Energy Resources', 'Planning and Sustainable Development', 'Transport and Communication', 'International Trade']
+    },
+    'Political Science': {
+      'Contemporary World Politics':            ['The End of Bipolarity', 'New Centres of Power', 'Contemporary South Asia', 'United Nations and its Organizations', 'Security in Contemporary World', 'Environment and Natural Resources', 'Globalisation'],
+      'Politics in India Since Independence':   ['Challenges of Nation-Building', 'Era of One-Party Dominance', 'Politics of Planned Development', 'India’s External Relations', 'Challenges to and Restoration of the Congress System', 'The Crisis of Democratic Order', 'Regional Aspirations', 'Recent Developments in Indian Politics']
     },
   },
 };

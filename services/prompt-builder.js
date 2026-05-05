@@ -37,7 +37,7 @@ function getQuestionRequirements(subject) {
 // ─────────────────────────────────────────────────────────────────────────────
 //  QUESTION GENERATION PROMPT
 // ─────────────────────────────────────────────────────────────────────────────
-function buildQuestionPrompt({ studentClass, subject, chapter, topic, difficulty, ncertContext }) {
+function buildQuestionPrompt({ studentClass, subject, chapter, topic, difficulty, count = 5, ncertContext }) {
     const bloomsLevel = getBloomsLevel(studentClass);
     const requirements = getQuestionRequirements(subject);
 
@@ -57,7 +57,7 @@ ${ncertContext.substring(0, 6000)}
     return `You are a SENIOR CBSE EXAM PAPER SETTER with 20+ years of experience.
 
 ══════════════════════════════════════════════════════
-  TOPIC LOCK — ALL 5 QUESTIONS MUST BE ABOUT:
+  TOPIC LOCK — ALL ${count} QUESTIONS MUST BE ABOUT:
   Class   : ${studentClass}
   Subject : ${subject}
   Chapter : ${chapter}
@@ -70,7 +70,7 @@ BLOOM'S LEVEL : ${bloomsLevel}
 
 ${ragSection}
 
-GENERATE EXACTLY 5 QUESTIONS — ALL ABOUT "${topic}" in "${chapter}":
+GENERATE EXACTLY ${count} QUESTIONS — ALL ABOUT "${topic}" in "${chapter}":
 ${requirements}
 
 FORMATTING RULES:
@@ -97,7 +97,7 @@ OUTPUT — valid JSON only, no markdown, no explanation:
 }
 
 SELF-CHECK before responding:
-✓ Exactly 5 questions?
+✓ Exactly ${count} questions?
 ✓ Every question is about "${topic}" in "${chapter}"?
 ✓ Answers match the questions (not a different topic)?
 ✓ All LaTeX double-escaped in JSON?
