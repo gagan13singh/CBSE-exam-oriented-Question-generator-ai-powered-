@@ -1,64 +1,160 @@
-# 🎓 CBSE Exam Question Generator (AI-Powered)
+<!-- VIDYASTRA — README -->
 
-Experience the future of exam preparation with this intelligent Question Paper Generator. Built for CBSE Class 9-12 standards, it uses local AI (Llama 3 via Ollama) to create high-quality, exam-oriented questions in seconds.
+<div align="center">
 
-## ✨ Key Features
+<h1>⚡ VIDYASTRA</h1>
 
--   **🤖 AI-Powered Generation**: Generates specific questions (Numerical, Case-Based, HOTS) using Llama 3.
--   **🧮 Smart Math & Science Support**:
-    -   **Strict LaTeX Rendering**: Beautifully formatted equations ($E=mc^2$) and formulas.
-    -   **Numerical Enforcement**: Math questions are strictly problem-solving oriented (No pure theory).
--   **⚡ High-Performance Architecture**:
-    -   **Backend Caching**: Instant responses for previously generated topics (0ms latency).
-    -   **Streaming Typewriter Effect**: Engaging, real-time text display for questions.
--   **📄 Practice Paper Mode**: Generate full-length 10-question practice papers with "Expert Solutions".
--   **📥 PDF Download**: Export succinct, formatted questions and answers as PDFs.
--   **💡 Educational Facts**: "Did You Know?" loading screen with 100+ curriculum-aligned facts.
+### *AI-Powered CBSE Question Generator*
 
-## 🚀 Tech Stack
+[![Live](https://img.shields.io/badge/🚀_LIVE_DEMO-vidyastra--prep.vercel.app-6366f1?style=for-the-badge)](https://vidyastra-prep.vercel.app/)
+[![Questions](https://img.shields.io/badge/GENERATES-10--50_Questions-f59e0b?style=for-the-badge)](#)
+[![Speed](https://img.shields.io/badge/IN_UNDER-60_Seconds-10b981?style=for-the-badge)](#)
+[![Effort](https://img.shields.io/badge/PREP_EFFORT-↓_80%25-ef4444?style=for-the-badge)](#)
 
--   **Frontend**: React + Vite + TailwindCSS
--   **Backend**: Node.js + Express
--   **AI Engine**: Ollama (Llama 3)
--   **Rendering**: React Markdown + Katex (for Math)
+*Vidyastra (विद्यास्त्र) — Sanskrit for "Weapon of Knowledge"*
 
-## 🛠️ Installation & Setup
-
-1.  **Prerequisites**:
-    -   Node.js installed.
-    -   [Ollama](https://ollama.com/) installed and running (`ollama run llama3`).
-
-2.  **Backend Setup**:
-    ```bash
-    # Install dependencies
-    npm install express cors body-parser dotenv pdf-parse
-
-    # Start the server (Runs on port 3000)
-    node server.js
-    ```
-
-3.  **Frontend Setup**:
-    ```bash
-    cd client
-    npm install
-    npm run dev
-    ```
-
-4.  **Access**: Open `http://localhost:5173` in your browser.
-
-## 🔒 Security Note
-
--   **Sensitive Files Ignored**: This project includes a `.gitignore` file to ensure strictly local files (like `.env`, `node_modules`, and local data caches) are **never** committed to GitHub.
--   **Safe Deployment**: All API keys and secrets should be managed via environment variables.
-
-## 📝 Usage Guide
-
-1.  Select **Class**, **Subject**, and **Chapter**.
-2.  Choose **Question Type** (e.g., Numerical, Case-Based).
-3.  Click **Generate**.
-4.  For Math, notice the **Strict Numerical** enforcement!
-5.  Use **Practice Mode** to take a mock test.
-6.  **Download PDF** to save your work.
+</div>
 
 ---
-*Developed with ❤️ by Gagandeep Singh*
+
+## ▸ What is Vidyastra?
+
+Exam prep is broken. Students spend hours hunting for the right questions — sorted by type, chapter, difficulty — often settling for low-quality material.
+
+**Vidyastra fixes this with AI.**
+
+Select your class, subject, and chapter. Choose question type. Get 10–50 CBSE-standard questions in under 60 seconds, complete with solutions. Download as PDF. Done.
+
+---
+
+## ▸ Key Features
+
+### 🤖 Dual LLM Architecture
+Two models working in tandem — **LLaMA** for question depth and **Groq** for speed. The system automatically balances quality and latency to give you the best output fast.
+
+### 📐 Smart Subject Handling
+- **Math & Science**: Strict numerical enforcement — no pure theory, real problem-solving questions with LaTeX rendered equations (`$E=mc^2$`, `$F=ma$`)
+- **HOTS**: Higher Order Thinking Skills questions aligned to CBSE marking schemes
+- **Case-Based**: Passage-based questions matching the latest exam pattern
+
+### 📄 Practice Paper Mode
+Generate a full 10-question mock paper with expert solutions. Timed, structured, exam-ready.
+
+### ⚡ Performance Optimisations
+- **Backend caching** — previously generated topics return in 0ms
+- **Streaming typewriter effect** — questions appear in real time, no waiting
+- **100+ educational facts** on the loading screen (curriculum-aligned)
+
+### 📥 PDF Export
+Clean, formatted question papers ready to print or share.
+
+---
+
+## ▸ Architecture
+
+```
+User Input
+  │
+  ▼
+┌─────────────────────────────────────┐
+│           React Frontend            │
+│  Class → Subject → Chapter → Type  │
+└──────────────────┬──────────────────┘
+                   │ REST API
+                   ▼
+┌─────────────────────────────────────┐
+│          Node.js + Express          │
+│                                     │
+│  ┌─────────────┐  ┌──────────────┐  │
+│  │  Cache Layer│  │  RAG Pipeline│  │
+│  │  (instant   │  │  (data/ dir) │  │
+│  │  on repeat) │  └──────┬───────┘  │
+│  └─────────────┘         │          │
+│                           ▼          │
+│  ┌────────────────────────────────┐  │
+│  │         Dual LLM Router        │  │
+│  │  LLaMA (quality) + Groq (speed)│  │
+│  └────────────────────────────────┘  │
+└──────────────────┬──────────────────┘
+                   │
+                   ▼
+          Structured Questions
+          + LaTeX + Solutions
+```
+
+---
+
+## ▸ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React · Vite · TailwindCSS |
+| Backend | Node.js · Express |
+| AI Models | LLaMA 3 (via Ollama) · Groq API |
+| Math Rendering | KaTeX · React Markdown |
+| Auth | Supabase Auth |
+| Deployment | Vercel (frontend) · Render (backend) |
+
+---
+
+## ▸ Project Structure
+
+```
+vidyastra/
+├── client/          # React frontend
+├── agents/          # LLM agent logic
+├── rag/             # Retrieval-augmented generation
+├── data/            # CBSE curriculum data
+├── routes/          # Express API routes
+├── services/        # LLM service handlers
+├── middleware/      # Auth & validation
+└── server.js        # Entry point
+```
+
+---
+
+## ▸ Getting Started
+
+```bash
+# Clone the repo
+git clone https://github.com/gagan13singh/CBSE-exam-oriented-Question-generator-ai-powered-.git
+cd CBSE-exam-oriented-Question-generator-ai-powered-
+
+# Install backend dependencies
+npm install
+
+# Setup environment
+cp .env.example .env
+# Add your GROQ_API_KEY to .env
+
+# Start backend (port 3000)
+node server.js
+
+# In a new terminal — start frontend
+cd client
+npm install
+npm run dev
+```
+
+> Requires [Ollama](https://ollama.com/) running locally: `ollama run llama3`
+
+---
+
+## ▸ Supported Classes & Subjects
+
+```
+Classes  : 9 · 10 · 11 · 12
+Subjects : Physics · Chemistry · Mathematics · Biology
+           Economics · Accountancy · Computer Science
+Types    : Numerical · Case-Based · HOTS · Short Answer · Long Answer
+```
+
+---
+
+<div align="center">
+
+**Built by [Gagandeep Singh](https://github.com/gagan13singh)**
+
+*Reducing exam prep effort by 80% — one question at a time.*
+
+</div>
